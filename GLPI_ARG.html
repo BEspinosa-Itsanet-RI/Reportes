@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GLPI · ITSANET Argentina</title>
+<style>
+  :root{
+    --navy:#101b2d;
+    --navy2:#16233a;
+    --blue:#1f3a5f;
+    --accent:#e8823c;
+    --accent2:#2e8b7c;
+    --red:#c94a3d;
+    --amber:#c98a1f;
+    --green:#2e8b57;
+    --bg:#f4f6f9;
+    --card:#ffffff;
+    --border:#e1e6ee;
+    --text:#1c2733;
+    --muted:#5b6b7f;
+    --sidebar-w:240px;
+    --sidebar-w-narrow:64px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.5;
+  }
+
+  /* ===== Sidebar nav — siempre a la izquierda, nunca se mueve arriba ===== */
+  .sidebar{
+    position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);
+    background:var(--navy);color:#fff;
+    padding:22px 16px;overflow-y:auto;overflow-x:hidden;
+    z-index:20;
+    transition:width .15s ease;
+  }
+  .sidebar-brand{
+    font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--accent);font-weight:800;margin-bottom:4px;white-space:nowrap;
+  }
+  .sidebar-title{font-size:15px;font-weight:800;margin-bottom:22px;line-height:1.3;}
+  .nav-link{
+    display:flex;align-items:center;gap:9px;
+    padding:9px 10px;border-radius:8px;margin-bottom:3px;
+    color:#c7d2e0;text-decoration:none;font-size:13.3px;font-weight:600;
+    transition:background .15s, color .15s;
+    white-space:nowrap;overflow:hidden;
+  }
+  .nav-link .nb{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:20px;height:20px;border-radius:6px;background:rgba(255,255,255,.08);
+    font-size:11px;font-weight:800;flex:0 0 20px;
+  }
+  .nav-link:hover{background:rgba(255,255,255,.08);color:#fff;}
+  .nav-link.active{background:var(--accent);color:#1c1206;}
+  .nav-link.active .nb{background:rgba(0,0,0,.15);}
+  .sidebar-foot{margin-top:24px;padding-top:16px;border-top:1px solid rgba(255,255,255,.12);font-size:11.5px;color:#8fa0b8;}
+
+  .content{margin-left:var(--sidebar-w);transition:margin-left .15s ease;}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 24px 80px;}
+
+  /* Pantallas angostas: el menú se reduce a una barra de iconos, pero SIGUE a la izquierda */
+  @media (max-width:760px){
+    :root{--sidebar-w:var(--sidebar-w-narrow);}
+    .sidebar{padding:16px 6px;align-items:center;}
+    .sidebar-brand,.sidebar-title,.sidebar-foot,.nav-link .label{display:none;}
+    .nav-link{justify-content:center;padding:10px 0;}
+    .nav-link .nb{width:26px;height:26px;font-size:12px;}
+  }
+
+  header.hero{
+    background:linear-gradient(135deg,var(--navy) 0%,var(--blue) 100%);
+    color:#fff;
+    padding:48px 24px 40px;
+    margin-bottom:32px;
+  }
+  header.hero .wrap{padding:0;}
+  .eyebrow{
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-size:12.5px;
+    color:var(--accent);
+    font-weight:700;
+    margin-bottom:10px;
+  }
+  h1{font-size:30px;margin:0 0 10px;font-weight:800;letter-spacing:-.01em;}
+  .hero-meta{display:flex;flex-wrap:wrap;gap:20px;margin-top:20px;font-size:13.5px;color:#c7d2e0;}
+  .hero-meta strong{color:#fff;font-weight:600;}
+  section{margin-bottom:40px;scroll-margin-top:18px;}
+  h2{
+    font-size:20px;
+    font-weight:800;
+    margin:0 0 4px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:var(--navy);
+  }
+  h2 .num{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:26px;height:26px;border-radius:7px;
+    background:var(--navy);color:#fff;font-size:13px;font-weight:800;
+  }
+  .section-sub{color:var(--muted);font-size:14px;margin:0 0 18px 36px;}
+  .stat-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+    gap:14px;
+    margin-top:8px;
+  }
+  .stat-card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px 18px;
+  }
+  .stat-card .n{font-size:26px;font-weight:800;color:var(--navy);}
+  .stat-card .l{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .stat-card.warn .n{color:var(--red);}
+  .stat-card.focus{border-color:#f0c69a;background:#fff8f1;}
+  .stat-card.focus .n{color:var(--accent);}
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:22px 24px;
+  }
+  table{width:100%;border-collapse:collapse;font-size:13.8px;}
+  th{
+    text-align:left;
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:var(--muted);
+    border-bottom:2px solid var(--border);
+    padding:8px 10px;
+    white-space:nowrap;
+    user-select:none;
+  }
+  th.sortable{cursor:pointer;}
+  th.sortable:hover{color:var(--navy);}
+  .sort-arrow{font-size:10px;color:var(--accent);}
+  td{padding:10px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  .pill{
+    display:inline-block;padding:2px 9px;border-radius:99px;font-size:11.5px;font-weight:700;
+  }
+  .pill.ok{background:#e4f3ec;color:var(--green);}
+  .pill.no{background:#fbeae7;color:var(--red);}
+  .pill.warn{background:#fdf1de;color:var(--amber);}
+  .pill.info{background:#e6edf7;color:var(--blue);}
+  .badge{
+    display:inline-block;padding:1px 8px;border-radius:6px;font-size:11px;font-weight:700;margin-left:6px;
+  }
+  .badge.crit{background:var(--red);color:#fff;}
+  .badge.focus{background:var(--accent);color:#1c1206;}
+  .callout{
+    border-radius:12px;
+    padding:16px 18px;
+    margin:14px 0;
+    border:1px solid;
+    font-size:14px;
+  }
+  .callout.crit{background:#fdf1ef;border-color:#f3c3ba;}
+  .callout.warn{background:#fdf6e8;border-color:#f0d99b;}
+  .callout.info{background:#eef3fb;border-color:#c9d8ee;}
+  .callout.focus{background:#fff6ec;border-color:#f0c69a;}
+  .callout.ok{background:#eaf7f0;border-color:#b9e3c9;}
+  .callout .ct{font-weight:800;margin-bottom:5px;display:flex;align-items:center;gap:8px;}
+  .callout.crit .ct{color:#a3372b;}
+  .callout.warn .ct{color:#93690f;}
+  .callout.info .ct{color:#284876;}
+  .callout.focus .ct{color:#a3591a;}
+  .callout.ok .ct{color:#1f7a4d;}
+  code{background:#eef1f6;padding:1px 6px;border-radius:5px;font-size:12.5px;}
+
+  /* Dynamic table filter */
+  .table-filter-wrap{margin-bottom:10px;}
+  .table-filter{
+    width:100%;max-width:280px;padding:7px 11px;border-radius:8px;border:1px solid var(--border);
+    font-size:13px;
+  }
+  .table-hint{font-size:11px;color:var(--muted);margin:0 0 10px;}
+
+  /* Tree */
+  .tree-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+  .tree-tools input[type=text]{
+    flex:1;min-width:200px;padding:9px 12px;border-radius:9px;border:1px solid var(--border);
+    font-size:13.5px;
+  }
+  .tree-tools button{
+    padding:9px 14px;border-radius:9px;border:1px solid var(--border);background:#fff;
+    font-size:13px;font-weight:600;cursor:pointer;color:var(--navy);
+  }
+  .tree-tools button:hover{background:#f0f3f8;}
+  .tree-count{font-size:12.5px;color:var(--muted);margin-left:auto;white-space:nowrap;}
+  ul.tree, ul.tree ul{list-style:none;margin:0;padding-left:0;}
+  ul.tree ul{padding-left:22px;border-left:1px dashed var(--border);margin-left:9px;}
+  .node{padding:5px 0;}
+  .node-row{display:flex;align-items:center;gap:7px;cursor:default;}
+  .toggle{
+    width:18px;height:18px;flex:0 0 18px;border-radius:5px;border:1px solid var(--border);
+    background:#f7f9fc;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;
+    color:var(--navy);user-select:none;
+  }
+  .toggle.leaf{visibility:hidden;}
+  .node-name{font-size:14px;font-weight:600;color:#2c394a;}
+  .node-name.root{font-weight:800;color:var(--navy);font-size:15px;}
+  .node-name.branch{color:var(--blue);font-weight:700;}
+  .node-name.leaf{font-weight:500;color:#4a5768;}
+  .node-name.focus{color:#a3591a;}
+  .node.focus-branch > .node-row{
+    background:#fff6ec;border:1px solid #f0c69a;border-radius:8px;padding:5px 10px;margin:3px 0;
+  }
+  .node.focus-branch > ul.tree{border-left:2px solid var(--accent);}
+  .node-row:hover{background:#f7f9fc;border-radius:6px;}
+  .node.focus-branch > .node-row:hover{background:#fdeed9;}
+  .node.hidden{display:none;}
+  .node-count{
+    font-size:11px;color:var(--muted);font-weight:700;background:#eef1f6;
+    padding:1px 8px;border-radius:20px;
+  }
+  mark{background:#ffe4a3;padding:0 2px;border-radius:3px;}
+  .tree-legend{display:flex;flex-wrap:wrap;gap:16px;margin:0 0 16px;padding:10px 14px;background:#f7f9fc;border-radius:9px;font-size:12px;color:var(--muted);}
+  .tree-legend span{display:flex;align-items:center;gap:6px;}
+  .tree-legend .dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:0 0 9px;}
+  .tree-legend .dot.root{background:var(--navy);}
+  .tree-legend .dot.branch{background:var(--blue);}
+  .tree-legend .dot.leaf{background:#9aa7b8;}
+  .tree-legend .dot.focus{background:var(--accent);}
+
+  .rec-grid{display:grid;grid-template-columns:1fr;gap:14px;}
+  .rec{
+    background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;
+    display:grid;grid-template-columns:90px 1fr;gap:14px;align-items:start;
+  }
+  .prio{
+    font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;
+    padding:5px 0;border-radius:8px;text-align:center;height:fit-content;
+  }
+  .prio.alta{background:#fbeae7;color:var(--red);}
+  .prio.media{background:#fdf1de;color:var(--amber);}
+  .prio.baja{background:#e6edf7;color:var(--blue);}
+  .rec h4{margin:0 0 4px;font-size:14.5px;color:var(--navy);}
+  .rec p{margin:0;font-size:13.5px;color:#3a4757;}
+  footer{
+    text-align:center;color:var(--muted);font-size:12.5px;padding:30px 0 10px;border-top:1px solid var(--border);margin-top:10px;
+  }
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media (max-width:720px){.grid2{grid-template-columns:1fr;} .rec{grid-template-columns:70px 1fr;}}
+</style>
+</head>
+<body>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-brand">ITSANET Argentina</div>
+  <div class="sidebar-title">GLPI</div>
+  <a class="nav-link" href="#resumen" title="Resumen "><span class="nb">1</span><span class="label">Resumen </span></a>
+  <a class="nav-link" href="#estructura" title="Estructura organizacional"><span class="nb">2</span><span class="label">Estructura organizacional</span></a>
+  <a class="nav-link" href="#arbol" title="Árbol de categorías"><span class="nb">3</span><span class="label">Árbol de categorías</span></a>
+  <a class="nav-link" href="#perfiles" title="Perfiles de usuario"><span class="nb">4</span><span class="label">Perfiles de usuario</span></a>
+  <a class="nav-link" href="#reglas" title="Motor de reglas"><span class="nb">5</span><span class="label">Motor de reglas</span></a>
+
+  <div class="sidebar-foot">Menú fijo — navega por secciones sin recorrer toda la hoja.</div>
+</nav>
+
+<div class="content">
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">GLPI · Estado de configuración</div>
+    <h1>Configuración GLPI — ITSANET Argentina</h1>
+    <div class="hero-meta">
+      <span><strong>Instancia:</strong> soporte.flexnetuio.com (192.168.92.43)</span>
+      <span><strong>Entidad raíz:</strong> ITSANET Argentina</span>
+      <span><strong>Fecha del análisis:</strong> 08 de septiembre de 2026</span>
+      <span><strong>Elaborado por:</strong> Revisión técnica GLPI</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section id="resumen">
+    <h2><span class="num">1</span>Resumen </h2>
+    <p class="section-sub">Estado actual de la configuración de la mesa de servicio GLPI para la entidad Argentina.</p>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="n">1</div><div class="l">Entidad (ITSANET Argentina)</div></div>
+      <div class="stat-card"><div class="n">3</div><div class="l">Grupos de trabajo</div></div>
+      <div class="stat-card"><div class="n">8</div><div class="l">Perfiles de usuario</div></div>
+      <div class="stat-card"><div class="n">32</div><div class="l">Categorías ITIL</div></div>
+      <div class="stat-card focus"><div class="n">6</div><div class="l">Sub-categorías de TMS — rama principal</div></div>
+      <div class="stat-card"><div class="n">4</div><div class="l">Reglas de negocio (peticiones)</div></div>
+      <div class="stat-card warn"><div class="n">0</div><div class="l">ANS / SLA configurados</div></div>
+      <div class="stat-card"><div class="n">4/4</div><div class="l">Reglas de negocio con acción configurada</div></div>
+      <div class="stat-card"><div class="n">72</div><div class="l">Entradas de lista negra (inventario)</div></div>
+    </div>
+    <div class="callout ok" style="margin-top:20px;">
+      <div class="ct">✔ Hallazgo corregido</div>
+      La regla <code>Asignación Automática - Soporte Técnico</code> fue detectada durante esta revisión sin ninguna acción configurada (quedaba activa pero no hacía nada). Ya fue corregida: ahora asigna <strong>Grupo técnico → Mesa de Servicio</strong> cuando la categoría es HELPDESK. Único punto pendiente: el criterio sigue evaluando solo la categoría raíz, no sus sub-categorías (detalle en sección 5).
+    </div>
+  </section>
+
+  <section id="estructura">
+    <h2><span class="num">2</span>Estructura organizacional</h2>
+    <p class="section-sub">Entidad única, sin sub-entidades, y 3 grupos planos (sin jerarquía padre/hijo).</p>
+    <div class="grid2">
+      <div class="card">
+        <table>
+          <tr><th>Entidad</th></tr>
+          <tr><td>ITSANET Argentina <span class="pill info">única / raíz</span></td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <table class="dyn" id="tblGrupos">
+          <thead><tr><th>Grupo</th></tr></thead>
+          <tbody>
+            <tr><td>ADMINISTRATIVO</td></tr>
+            <tr><td>MESA DE SERVICIO</td></tr>
+            <tr><td>OPERACIONES</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="arbol">
+    <h2><span class="num">3</span>Árbol de categorías ITIL</h2>
+    <p class="section-sub">32 categorías activas bajo la raíz HELPDESK, más una categoría de control ("Solicitud incompleta o inválida"). Árbol interactivo: busca, expande o colapsa.</p>
+    <div class="card">
+      <div class="tree-legend">
+        <span><i class="dot root"></i> Categoría raíz</span>
+        <span><i class="dot branch"></i> Categoría con sub-categorías</span>
+        <span><i class="dot leaf"></i> Sub-categoría final</span>
+        <span><i class="dot focus"></i> ★ Categoría fundamental (mayor gestión)</span>
+      </div>
+      <div class="tree-tools">
+        <input type="text" id="treeSearch" placeholder="Buscar categoría… (ej. VPN, TMS, DEPOT)">
+        <button id="expandAll">Expandir todo</button>
+        <button id="collapseAll">Colapsar todo</button>
+        <span class="tree-count" id="treeCount">32 categorías</span>
+      </div>
+      <ul class="tree" id="treeRoot"></ul>
+    </div>
+    <div class="callout focus">
+      <div class="ct">★ TMS: categoría fundamental de la operación en Argentina</div>
+      <strong>TMS</strong> es, dentro de este árbol, la rama con mayor desarrollo: 6 sub-categorías propias (actualización de datos, creación de usuario, error, integración, mejora/cambio de proceso y reportes) frente a un máximo de 3 en cualquier otra rama operativa. Refleja que la gestión del sistema TMS será el eje central del trabajo de la mesa de servicio para la entidad Argentina, y por lo tanto el primer candidato para SLA dedicado, enrutamiento automático y seguimiento de indicadores (ver secciones 5 y 6).
+    </div>
+  </section>
+
+  <section id="perfiles">
+    <h2><span class="num">4</span>Perfiles de usuario</h2>
+    <p class="section-sub">8 perfiles definidos en la instancia.</p>
+    <div class="card">
+      <div class="table-filter-wrap">
+        <input type="text" class="table-filter" data-target="tblPerfiles" placeholder="Filtrar perfiles…">
+      </div>
+      <p class="table-hint">Clic en un encabezado para ordenar la tabla.</p>
+      <table class="dyn" id="tblPerfiles">
+        <thead><tr><th>Perfil</th><th>ID</th><th>Predeterminado</th></tr></thead>
+        <tbody>
+          <tr><td>Admin</td><td>3</td><td>No</td></tr>
+          <tr><td>Auditor</td><td>8</td><td>No</td></tr>
+          <tr><td>Hotliner</td><td>5</td><td>No</td></tr>
+          <tr><td>Observador</td><td>2</td><td>No</td></tr>
+          <tr><td>Super-Admin</td><td>4</td><td>No</td></tr>
+          <tr><td>Supervisor</td><td>7</td><td>No</td></tr>
+          <tr><td>Tecnico</td><td>6</td><td>No</td></tr>
+          <tr><td>Usuario</td><td>1</td><td><span class="pill ok">Sí</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout info">
+      <div class="ct">ℹ Observación</div>
+      Los 8 perfiles corresponden a los nombres estándar de GLPI (no se detectaron perfiles personalizados por rol de negocio, p. ej. "Técnico Depot" o "Encargado Mesa de Servicio"). Con 3 grupos operativos claramente diferenciados, podría valer la pena crear perfiles o al menos alcance por entidad/grupo más granular. Ver recomendaciones.
+    </div>
+  </section>
+
+  <section id="reglas">
+    <h2><span class="num">5</span>Motor de reglas</h2>
+    <p class="section-sub">Reglas de negocio locales configuradas en la entidad ITSANET Argentina.</p>
+
+    <h3 style="font-size:15px;color:var(--navy);margin:18px 0 8px;">5.1 Reglas de negocio para peticiones (RuleTicket) — 4 reglas, motor "ejecuta todas"</h3>
+    <div class="card">
+      <div class="table-filter-wrap">
+        <input type="text" class="table-filter" data-target="tblRuleTicket" placeholder="Filtrar reglas…">
+      </div>
+      <p class="table-hint">Clic en un encabezado para ordenar la tabla.</p>
+      <table class="dyn" id="tblRuleTicket">
+        <thead><tr><th>Regla</th><th>Usar para</th><th>Criterios</th><th>Acción</th><th>Estado</th></tr></thead>
+        <tbody>
+        <tr>
+          <td>Ticket location from item</td>
+          <td>Añadir</td>
+          <td>Ubicación de la petición no existe · Ubicación del elemento existe</td>
+          <td>Copiar ubicación desde el elemento</td>
+          <td><span class="pill ok">Activa</span></td>
+        </tr>
+        <tr>
+          <td>Ticket location from user</td>
+          <td>Añadir</td>
+          <td>Ubicación de la petición no existe · Ubicación del solicitante existe</td>
+          <td>Copiar ubicación desde el usuario</td>
+          <td><span class="pill ok">Activa</span></td>
+        </tr>
+        <tr>
+          <td>Asignación Automática - Soporte Técnico <span class="pill ok">corregida</span></td>
+          <td>Añadir</td>
+          <td>Categoría es <em>HELPDESK</em> (raíz, no incluye subcategorías)</td>
+          <td>Grupo técnico → Asignar: Mesa de Servicio</td>
+          <td><span class="pill ok">Activa</span></td>
+        </tr>
+        <tr>
+          <td>Reapertura - Cambiar Pendiente a En Curso</td>
+          <td>Actualizar</td>
+          <td>Estado es "En espera" · Perfil predeterminado es "Usuario"</td>
+          <td>Estado → Asignar "En curso (asignada)"</td>
+          <td><span class="pill ok">Activa</span></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-size:15px;color:var(--navy);margin:18px 0 8px;">5.2 Reglas de asignación de autorizaciones (RuleRight) — 1 regla</h3>
+    <div class="card">
+      <table class="dyn" id="tblRuleRight">
+        <thead><tr><th>Regla</th><th>Criterios</th><th>Acciones</th><th>Estado</th></tr></thead>
+        <tbody>
+        <tr>
+          <td>Root</td>
+          <td>Tipo de autenticación es Directorio LDAP <em>o</em> Servidor de correo</td>
+          <td>Entidad → ITSANET Argentina · Perfil → Usuario</td>
+          <td><span class="pill ok">Activa</span></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-size:15px;color:var(--navy);margin:18px 0 8px;">5.3 Otros tipos de regla</h3>
+    <div class="card">
+      <table class="dyn" id="tblOtras">
+        <thead><tr><th>Tipo de regla</th><th>Reglas encontradas</th></tr></thead>
+        <tbody>
+        <tr><td>Asignación de elemento a entidad</td><td><span class="pill warn">0 reglas</span></td></tr>
+        <tr><td>Reglas de ubicación</td><td><span class="pill warn">0 reglas</span></td></tr>
+        <tr><td>Reglas de negocio para activos</td><td>3 reglas <span class="pill info">estándar GLPI (auto-inventario)</span></td></tr>
+        <tr><td>Listas negras (blacklist)</td><td>72 entradas <span class="pill info">estándar GLPI, activas</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="recomendaciones">
+    
+<script>
+/* ===== Árbol de categorías ===== */
+const data = [
+  { name: "HELPDESK", children: [
+    { name: "ACTIVE DIRECTORY" },
+    { name: "CONEXION", children: [
+      { name: "APLICATIVOS EXTERNOS" },
+      { name: "DEPOT" },
+      { name: "EXCEL" },
+      { name: "POWER BI" },
+      { name: "TMS" },
+      { name: "VPN" }
+    ]},
+    { name: "CORREO ITSANET", children: [
+      { name: "ACTUALIZACION DE DATOS" },
+      { name: "CREACION" },
+      { name: "ELIMINACION" }
+    ]},
+    { name: "DEPOT", children: [
+      { name: "ACTUALIZACION DE DATOS" },
+      { name: "CREACION DE USUARIO" },
+      { name: "ERROR" }
+    ]},
+    { name: "INFRAESTRUCTURA", children: [
+      { name: "ACTIVIDAD" },
+      { name: "MANTENIMIENTO" },
+      { name: "REDES" }
+    ]},
+    { name: "SOLICITUD DE EQUIPAMIENTO", children: [
+      { name: "HANDHELD" },
+      { name: "LAPTOP" }
+    ]},
+    { name: "TMS", focus:true, children: [
+      { name: "ACTUALIZACION DE DATOS" },
+      { name: "CREACION DE USUARIO" },
+      { name: "ERROR" },
+      { name: "INTEGRACION" },
+      { name: "MEJORA / CAMBIO PROCESO" },
+      { name: "REPORTES" }
+    ]}
+  ]},
+  { name: "SOLICITUD INCOMPLETA O INVALIDA" }
+];
+
+function countLeaves(node){
+  if(!node.children || node.children.length===0) return 1;
+  return node.children.reduce((a,c)=>a+countLeaves(c),0);
+}
+
+function buildNode(node, isRoot){
+  const li = document.createElement('li');
+  li.className = 'node' + (node.focus ? ' focus-branch' : '');
+  const row = document.createElement('div');
+  row.className = 'node-row';
+
+  const hasChildren = node.children && node.children.length>0;
+  const toggle = document.createElement('span');
+  toggle.className = 'toggle' + (hasChildren ? '' : ' leaf');
+  toggle.textContent = hasChildren ? '▾' : '•';
+  row.appendChild(toggle);
+
+  const name = document.createElement('span');
+  name.className = 'node-name ' + (isRoot ? 'root' : (hasChildren ? 'branch' : 'leaf')) + (node.focus ? ' focus' : '');
+  name.textContent = node.name;
+  name.setAttribute('data-name', node.name);
+  row.appendChild(name);
+
+  if(node.focus){
+    const b = document.createElement('span');
+    b.className = 'badge focus';
+    b.textContent = '★ Categoría fundamental';
+    row.appendChild(b);
+  }
+
+  if(hasChildren){
+    const cnt = document.createElement('span');
+    cnt.className = 'node-count';
+    cnt.textContent = '(' + countLeaves(node) + ')';
+    row.appendChild(cnt);
+  }
+
+  li.appendChild(row);
+
+  let ul;
+  if(hasChildren){
+    ul = document.createElement('ul');
+    ul.className = 'tree';
+    node.children.forEach(c => ul.appendChild(buildNode(c, false)));
+    li.appendChild(ul);
+
+    toggle.addEventListener('click', () => {
+      const collapsed = ul.style.display === 'none';
+      ul.style.display = collapsed ? '' : 'none';
+      toggle.textContent = collapsed ? '▾' : '▸';
+    });
+  }
+
+  return li;
+}
+
+const root = document.getElementById('treeRoot');
+data.forEach(n => root.appendChild(buildNode(n, true)));
+
+document.getElementById('treeCount').textContent = '32 categorías';
+
+document.getElementById('expandAll').addEventListener('click', () => {
+  root.querySelectorAll('ul.tree').forEach(u => u.style.display='');
+  root.querySelectorAll('.toggle:not(.leaf)').forEach(t => t.textContent='▾');
+});
+document.getElementById('collapseAll').addEventListener('click', () => {
+  root.querySelectorAll('li.node > ul.tree').forEach(u => { u.style.display='none'; });
+  root.querySelectorAll('.toggle:not(.leaf)').forEach(t => t.textContent='▸');
+});
+
+const searchInput = document.getElementById('treeSearch');
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toLowerCase();
+  const allNodes = root.querySelectorAll('li.node');
+  if(!q){
+    allNodes.forEach(li => { li.classList.remove('hidden'); });
+    root.querySelectorAll('.node-name').forEach(n => n.innerHTML = n.getAttribute('data-name'));
+    root.querySelectorAll('ul.tree').forEach(u => u.style.display='');
+    root.querySelectorAll('.toggle:not(.leaf)').forEach(t => t.textContent='▾');
+    return;
+  }
+  allNodes.forEach(li => li.classList.add('hidden'));
+  root.querySelectorAll('.node-name').forEach(n => n.innerHTML = n.getAttribute('data-name'));
+
+  const matches = Array.from(root.querySelectorAll('.node-name')).filter(n =>
+    n.getAttribute('data-name').toLowerCase().includes(q)
+  );
+
+  matches.forEach(n => {
+    const nameText = n.getAttribute('data-name');
+    const idx = nameText.toLowerCase().indexOf(q);
+    n.innerHTML = nameText.slice(0,idx) + '<mark>' + nameText.slice(idx, idx+q.length) + '</mark>' + nameText.slice(idx+q.length);
+
+    let li = n.closest('li.node');
+    while(li){
+      li.classList.remove('hidden');
+      const parentUl = li.parentElement;
+      if(parentUl && parentUl.classList.contains('tree')){
+        parentUl.style.display = '';
+        const parentLi = parentUl.closest('li.node');
+        const parentToggle = parentLi ? parentLi.querySelector(':scope > .node-row > .toggle') : null;
+        if(parentToggle) parentToggle.textContent = '▾';
+        li = parentLi;
+      } else {
+        li = null;
+      }
+    }
+  });
+});
+
+/* ===== Tablas dinámicas: ordenar por columna + filtrar filas ===== */
+function enhanceTable(table){
+  const thead = table.querySelector('thead');
+  const tbody = table.querySelector('tbody');
+  if(!thead || !tbody) return;
+  const ths = Array.from(thead.querySelectorAll('th'));
+  let state = {col:-1, dir:1};
+
+  ths.forEach((th, idx) => {
+    th.classList.add('sortable');
+    const arrow = document.createElement('span');
+    arrow.className = 'sort-arrow';
+    th.appendChild(document.createTextNode(' '));
+    th.appendChild(arrow);
+    th.addEventListener('click', () => {
+      const dir = (state.col === idx) ? -state.dir : 1;
+      state = {col: idx, dir};
+      ths.forEach(t => { const a = t.querySelector('.sort-arrow'); if(a) a.textContent=''; });
+      arrow.textContent = dir === 1 ? '▲' : '▼';
+
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      rows.sort((a, b) => {
+        const av = (a.children[idx] ? a.children[idx].textContent : '').trim();
+        const bv = (b.children[idx] ? b.children[idx].textContent : '').trim();
+        const an = parseFloat(av), bn = parseFloat(bv);
+        const bothNumeric = av !== '' && bv !== '' && !isNaN(an) && !isNaN(bn) && /^-?[\d.,]+$/.test(av) && /^-?[\d.,]+$/.test(bv);
+        const cmp = bothNumeric ? (an - bn) : av.localeCompare(bv, 'es', {sensitivity:'base'});
+        return cmp * dir;
+      });
+      rows.forEach(r => tbody.appendChild(r));
+    });
+  });
+}
+
+document.querySelectorAll('table.dyn').forEach(enhanceTable);
+
+document.querySelectorAll('.table-filter').forEach(input => {
+  const table = document.getElementById(input.getAttribute('data-target'));
+  if(!table) return;
+  const tbody = table.querySelector('tbody');
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    tbody.querySelectorAll('tr').forEach(tr => {
+      tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+});
+
+/* ===== Resaltar sección activa en el menú lateral al hacer scroll ===== */
+const navLinks = Array.from(document.querySelectorAll('.nav-link'));
+const sections = navLinks.map(l => document.querySelector(l.getAttribute('href')));
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    const id = '#' + entry.target.id;
+    const link = navLinks.find(l => l.getAttribute('href') === id);
+    if(!link) return;
+    if(entry.isIntersecting){
+      navLinks.forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+sections.forEach(s => { if(s) io.observe(s); });
+</script>
+
+</body>
+</html>
