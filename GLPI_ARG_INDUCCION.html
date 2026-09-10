@@ -1,0 +1,1009 @@
+<title>Guía GLPI ITSANET</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  /* ---------- tokens (brand: itsanet Argentina blue) ---------- */
+  :root{
+    --bg:#eef1f6;
+    --bg-soft:#e5eaf1;
+    --surface:#ffffff;
+    --surface-2:#f4f6fb;
+    --ink:#16202f;
+    --ink-soft:#48566a;
+    --ink-faint:#7c879a;
+    --line:#d7dfe9;
+    --line-strong:#c3ceda;
+    --accent:#1a46b8;
+    --accent-strong:#0f2f8c;
+    --accent-soft:#e4eafc;
+    --accent-ink:#ffffff;
+    --navy:#0d2568;
+    --navy-soft:#0a1c50;
+    --navy-line:#21408f;
+    --navy-ink:#eef1f8;
+    --navy-ink-soft:#a9bce6;
+    --urg-1:#c4291a; --urg-2:#c25a1e; --urg-3:#c99312; --urg-4:#2f8f6b; --urg-5:#6b7785;
+    --ok:#2f8f6b; --warn:#c99312; --bad:#c4291a;
+    --shadow:0 1px 2px rgba(13,37,104,.07), 0 8px 24px -12px rgba(13,37,104,.20);
+    --radius:14px;
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0a0f1c;
+      --bg-soft:#0e1526;
+      --surface:#121a2e;
+      --surface-2:#182238;
+      --ink:#e7ebf3;
+      --ink-soft:#b3bdcf;
+      --ink-faint:#7c88a0;
+      --line:#25304a;
+      --line-strong:#354363;
+      --accent:#6f97f0;
+      --accent-strong:#9ab6f5;
+    }
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --accent-soft:#16244a;
+      --accent-ink:#0c1730;
+      --navy:#050c1e;
+      --navy-soft:#0a1531;
+      --navy-line:#1d2c50;
+      --navy-ink:#eef1f8;
+      --navy-ink-soft:#93a6cf;
+      --urg-1:#e2493a; --urg-2:#e0813f; --urg-3:#e8bf3f; --urg-4:#45ad84; --urg-5:#8a96a8;
+      --ok:#45ad84; --warn:#e8bf3f; --bad:#e2493a;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 28px -12px rgba(0,0,0,.55);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0a0f1c;
+    --bg-soft:#0e1526;
+    --surface:#121a2e;
+    --surface-2:#182238;
+    --ink:#e7ebf3;
+    --ink-soft:#b3bdcf;
+    --ink-faint:#7c88a0;
+    --line:#25304a;
+    --line-strong:#354363;
+    --accent:#6f97f0;
+    --accent-strong:#9ab6f5;
+    --accent-soft:#16244a;
+    --accent-ink:#0c1730;
+    --navy:#050c1e;
+    --navy-soft:#0a1531;
+    --navy-line:#1d2c50;
+    --navy-ink:#eef1f8;
+    --navy-ink-soft:#93a6cf;
+    --urg-1:#e2493a; --urg-2:#e0813f; --urg-3:#e8bf3f; --urg-4:#45ad84; --urg-5:#8a96a8;
+    --ok:#45ad84; --warn:#e8bf3f; --bad:#e2493a;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 28px -12px rgba(0,0,0,.55);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{
+    font-family:"Barlow Semi Condensed", "IBM Plex Sans", sans-serif;
+    color:var(--ink);
+    text-wrap:balance;
+    margin:0;
+    letter-spacing:.01em;
+  }
+  p{margin:0;}
+  code, .mono{font-family:"IBM Plex Mono", ui-monospace, monospace;}
+  a{color:inherit;}
+  ::selection{background:var(--accent-soft); color:var(--accent-strong);}
+
+  /* ---------- shell layout ---------- */
+  .shell{
+    display:grid;
+    grid-template-columns:272px minmax(0,1fr);
+    min-height:100%;
+  }
+  @media (max-width:900px){
+    .shell{grid-template-columns:1fr;}
+  }
+
+  /* ---------- sidebar ---------- */
+  .sidebar{
+    position:sticky; top:0; align-self:start;
+    height:100dvh;
+    background:linear-gradient(180deg,var(--navy),var(--navy-soft));
+    color:var(--navy-ink);
+    display:flex; flex-direction:column;
+    border-right:1px solid var(--navy-line);
+    z-index:40;
+  }
+  @media (max-width:900px){
+    .sidebar{
+      position:fixed; inset:0 20% 0 0; height:100dvh; max-width:320px;
+      transform:translateX(-105%);
+      transition:transform .25s ease;
+      box-shadow:var(--shadow);
+    }
+    .sidebar.open{transform:translateX(0);}
+  }
+  .sidebar-head{
+    padding:22px 20px 16px;
+    border-bottom:1px solid var(--navy-line);
+    display:flex; align-items:center; gap:12px;
+  }
+  .sidebar-mark{
+    width:38px;height:38px;border-radius:10px;
+    background:rgba(255,255,255,.08); border:1px solid var(--navy-line);
+    display:flex;align-items:center;justify-content:center;
+    flex:none;
+  }
+  .sidebar-mark img{width:22px;height:22px;display:block;}
+  .sidebar-title{font-family:"Barlow Semi Condensed",sans-serif; font-weight:800; font-size:19px; line-height:1.1; letter-spacing:.01em;}
+  .sidebar-sub{font-size:11.5px; color:var(--navy-ink-soft); margin-top:2px; letter-spacing:.02em;}
+
+  .sidebar-progress{padding:14px 20px 6px;}
+  .progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--navy-ink-soft);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+  .progress-track{height:6px;border-radius:99px;background:var(--navy-line);overflow:hidden;}
+  .progress-fill{height:100%;background:#ffffff;width:0%;transition:width .3s ease;border-radius:99px;opacity:.85;}
+
+  nav.toc{flex:1; overflow-y:auto; padding:10px 12px 18px;}
+  nav.toc a{
+    display:flex; align-items:center; gap:10px;
+    padding:9px 10px; border-radius:9px;
+    font-size:13.5px; color:var(--navy-ink-soft);
+    text-decoration:none;
+    margin-bottom:2px;
+    border:1px solid transparent;
+  }
+  nav.toc a .num{
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--navy-ink-soft);
+    width:20px; flex:none;
+  }
+  nav.toc a .check{
+    margin-left:auto; width:15px;height:15px;border-radius:5px;
+    border:1.5px solid var(--navy-line); flex:none;
+    display:flex;align-items:center;justify-content:center;
+    font-size:10px; color:transparent;
+  }
+  nav.toc a.done .check{background:#ffffff; border-color:#ffffff; color:var(--navy);}
+  nav.toc a:hover{background:rgba(255,255,255,.06); color:var(--navy-ink);}
+  nav.toc a.active{background:rgba(255,255,255,.10); color:#fff; border-color:rgba(255,255,255,.18);}
+  nav.toc a.active .num{color:#fff;}
+
+  .sidebar-foot{
+    padding:14px 20px 18px; border-top:1px solid var(--navy-line);
+    font-size:11px; color:var(--navy-ink-soft);
+  }
+
+  .topbar{
+    display:none;
+    position:sticky; top:0; z-index:30;
+    background:var(--navy); color:var(--navy-ink);
+    padding:12px 16px; align-items:center; gap:10px;
+    border-bottom:1px solid var(--navy-line);
+  }
+  @media (max-width:900px){ .topbar{display:flex;} }
+  .menu-btn{
+    background:rgba(255,255,255,.08); border:1px solid var(--navy-line); color:var(--navy-ink);
+    width:36px;height:36px;border-radius:9px; display:flex;align-items:center;justify-content:center;
+    font-size:16px; cursor:pointer;
+  }
+  .scrim{display:none;}
+  .scrim.show{
+    display:block; position:fixed; inset:0; background:rgba(5,10,25,.5); z-index:35;
+  }
+
+  /* ---------- main content ---------- */
+  main{padding:40px 32px 90px; min-width:0;}
+  .content{max-width:840px; margin:0 auto;}
+  @media (max-width:640px){ main{padding:24px 16px 70px;} }
+
+  section{scroll-margin-top:24px; margin-bottom:60px;}
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.10em;
+    text-transform:uppercase; color:var(--accent-strong); font-weight:600;
+    display:flex; align-items:center; gap:8px; margin-bottom:10px;
+  }
+  .eyebrow .line{height:1px;width:28px;background:var(--accent);opacity:.6;}
+  h2.section-title{font-size:clamp(26px,3.4vw,34px); font-weight:700; margin-bottom:14px;}
+  .lede{font-size:16px; color:var(--ink-soft); max-width:64ch; margin-bottom:26px;}
+
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:20px 22px; box-shadow:var(--shadow);
+  }
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+  @media (max-width:640px){ .grid-2,.grid-3{grid-template-columns:1fr;} }
+
+  /* stat tiles */
+  .stat-row{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:26px 0 8px;}
+  @media (max-width:760px){ .stat-row{grid-template-columns:repeat(2,1fr);} }
+  .stat-tile{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:16px 16px 14px;
+  }
+  .stat-num{font-family:"Barlow Semi Condensed",sans-serif; font-weight:800; font-size:30px; color:var(--accent-strong); font-variant-numeric:tabular-nums;}
+  .stat-label{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+
+  /* step list */
+  .steps{display:flex; flex-direction:column; gap:0; counter-reset:step;}
+  .step{
+    display:grid; grid-template-columns:40px 1fr; gap:16px;
+    padding:18px 0; border-top:1px solid var(--line);
+  }
+  .step:first-child{border-top:none; padding-top:4px;}
+  .step-num{
+    counter-increment:step; width:36px;height:36px; border-radius:10px;
+    background:var(--surface-2); border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    font-family:"Barlow Semi Condensed",sans-serif; font-weight:700; color:var(--accent-strong);
+  }
+  .step-num::before{content:counter(step);}
+  .step h4{font-size:16.5px; margin-bottom:5px;}
+  .step p{color:var(--ink-soft); font-size:14.5px;}
+  .step .field-name{font-family:"IBM Plex Mono",monospace; font-size:12.5px; background:var(--accent-soft); color:var(--accent-strong); padding:1px 7px; border-radius:5px;}
+
+  /* role / actor cards */
+  .actor-row{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:18px 0;}
+  @media (max-width:700px){ .actor-row{grid-template-columns:1fr;} }
+  .actor{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .actor-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--surface-2);border:1px solid var(--line);}
+  .actor h4{font-size:15px;}
+  .actor p{font-size:13.5px;color:var(--ink-soft);}
+  .actor .tag{align-self:flex-start;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:99px;font-weight:600;background:var(--accent-soft);color:var(--accent-strong);}
+
+  /* callouts */
+  .callout{
+    border-radius:12px; padding:14px 16px; font-size:14px; display:flex; gap:12px; align-items:flex-start;
+    border:1px solid var(--line);
+  }
+  .callout .ic{font-size:16px; flex:none; margin-top:1px;}
+  .callout.info{background:var(--surface-2);}
+  .callout.warn{background:var(--accent-soft); border-color:transparent; color:var(--accent-strong);}
+  .callout.good{background:rgba(47,143,107,.10); border-color:rgba(47,143,107,.25);}
+  .callout.good .ic{color:var(--ok);}
+  .callout.bad{background:rgba(196,41,26,.08); border-color:rgba(196,41,26,.22);}
+  .callout.bad .ic{color:var(--bad);}
+  .callout strong{display:block;margin-bottom:2px;}
+
+  /* good vs bad example */
+  .example-row{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px;}
+  @media (max-width:700px){ .example-row{grid-template-columns:1fr;} }
+  .example{border-radius:12px; padding:16px; border:1px solid var(--line);}
+  .example.bad{background:rgba(196,41,26,.06);}
+  .example.good{background:rgba(47,143,107,.07);}
+  .example .head{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:9px;}
+  .example.bad .head{color:var(--bad);}
+  .example.good .head{color:var(--ok);}
+  .example .ttl{font-weight:600;font-size:14px;margin-bottom:6px;}
+  .example .desc{font-size:13px;color:var(--ink-soft); font-family:"IBM Plex Mono",monospace; line-height:1.6;}
+
+  /* portal mock (explicit visual of the real form, theme-independent "device chrome") */
+  .portal-mock{
+    border-radius:14px; overflow:hidden; border:1px solid #23345f;
+    box-shadow:var(--shadow); margin-top:22px; background:#0e1c3f;
+  }
+  .portal-mock .bar{
+    display:flex; align-items:center; gap:8px; padding:10px 14px;
+    background:#0a1631; border-bottom:1px solid #1c2c54;
+  }
+  .portal-mock .dot{width:9px;height:9px;border-radius:50%; background:#33426e;}
+  .portal-mock .url{
+    margin-left:8px; font-family:"IBM Plex Mono",monospace; font-size:11px; color:#7f92c4;
+  }
+  .portal-mock .body{padding:18px 20px 20px;}
+  .portal-mock .cap{font-size:12px; color:#8ea1d4; margin-bottom:14px; font-weight:600;}
+  .mock-row{display:grid; grid-template-columns:118px 1fr; gap:14px; align-items:start; padding:8px 0;}
+  .mock-row + .mock-row{border-top:1px solid #1c2c54;}
+  .mock-label{font-size:12.5px; color:#93a6d8; padding-top:7px; font-weight:600;}
+  .mock-value{
+    background:#132952; border:1px solid #24387a; border-radius:8px; padding:7px 12px;
+    font-size:13px; color:#eaf0ff; display:flex; align-items:center; justify-content:space-between; gap:8px;
+  }
+  .mock-value.text{display:block; line-height:1.55; font-family:"IBM Plex Mono",monospace; font-size:12px; color:#cdd8f5;}
+  .mock-value .chev{color:#5c72ab; font-size:10px;}
+  .mock-pill{font-size:11.5px; font-weight:600; padding:2px 9px; border-radius:99px; display:inline-flex; align-items:center; gap:5px;}
+  .mock-drop{
+    margin-top:4px; border:1.5px dashed #2b3f76; border-radius:9px; padding:12px; text-align:center;
+    font-size:11.5px; color:#7f92c4;
+  }
+
+  /* data table component */
+  .data-table{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow);}
+  .table-controls{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border-bottom:1px solid var(--line); background:var(--surface-2); flex-wrap:wrap;}
+  .table-search{
+    flex:1; min-width:180px; font:inherit; font-size:13px; padding:8px 12px; border-radius:9px;
+    border:1px solid var(--line-strong); background:var(--surface); color:var(--ink);
+  }
+  .table-search:focus{outline:2px solid var(--accent); outline-offset:1px;}
+  .table-count{font-size:11.5px; color:var(--ink-faint); white-space:nowrap;}
+  .table-scroll{overflow-x:auto;}
+  table{width:100%; border-collapse:collapse; font-size:13.5px;}
+  thead th{
+    text-align:left; padding:10px 14px; background:var(--surface-2); color:var(--ink-soft);
+    font-size:11px; text-transform:uppercase; letter-spacing:.05em; font-weight:600;
+    border-bottom:1px solid var(--line); white-space:nowrap; position:sticky; top:0;
+  }
+  thead th[data-sort]{cursor:pointer; user-select:none;}
+  thead th[data-sort]:hover{color:var(--accent-strong);}
+  .sort-ic{font-size:9px; margin-left:3px; color:var(--accent);}
+  tbody td{padding:10px 14px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink);}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--surface-2);}
+  .pill{display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:99px;}
+  .dot2{width:7px;height:7px;border-radius:50%;flex:none;}
+
+  /* lifecycle flow */
+  .flow{display:flex; align-items:center; gap:6px; overflow-x:auto; padding:6px 2px 14px;}
+  .flow-step{
+    flex:none; display:flex; flex-direction:column; gap:4px; align-items:center; min-width:110px;
+    text-align:center;
+  }
+  .flow-dot{width:14px;height:14px;border-radius:50%; background:var(--accent); border:3px solid var(--accent-soft);}
+  .flow-label{font-size:12px; font-weight:600;}
+  .flow-sub{font-size:10.5px; color:var(--ink-faint);}
+  .flow-arrow{flex:none; color:var(--ink-faint); font-size:15px; margin-top:-18px;}
+  .flow-branch{font-size:11px; color:var(--bad); background:rgba(196,41,26,.08); border:1px dashed rgba(196,41,26,.35); border-radius:8px; padding:6px 10px; margin:6px auto 0; max-width:600px;}
+
+  footer.page-end{
+    max-width:840px; margin:0 auto; padding-top:10px; border-top:1px solid var(--line);
+    font-size:12px; color:var(--ink-faint); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+
+  ul.plain{margin:0; padding-left:18px; display:flex; flex-direction:column; gap:6px; font-size:14.5px; color:var(--ink-soft);}
+  ul.plain li::marker{color:var(--accent);}
+
+  @media (prefers-reduced-motion:reduce){ *{transition:none !important; animation:none !important;} }
+</style>
+
+<div class="shell">
+  <div class="topbar">
+    <button class="menu-btn" id="menuBtn" aria-label="Abrir menú">☰</button>
+    <div class="sidebar-title" style="font-size:15px;">itsanet · Mesa de Servicio</div>
+  </div>
+  <div class="scrim" id="scrim"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-mark"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFkAAABaCAYAAADTn/oBAAADKklEQVR4nO2dO2tUURRG1wwWgj/BB4Kgha9GsBJBBFFBhJBGxEKsUtiJKCKKhZJOUlhZ2igYUBICgrGwCNiZNEJAMLGws1GwcSwmg8MwJjPn7LP3Pte9YLqcL98sLvs+c9PqdDoAH4BjBEVoA1cJwUVpAwesSzSdtnWB/4GQrEBIViAkKxCSFQjJCoRkBUKyAiFZgZCsQEhWICQrEJIVCMkKhGQFQrICIVkBL5J/AS1nn/tSX86L5O3WBYZwTyrIi+RGE5IVCMkKhGQFQrICIVmBkKxASFbAi+RJ6wIl8SL5uXWBkniRDNBJ/Ly1KDsOniSn8sS6wFbULvk68MK6xFbULPkuMGNdYhRqlTwNPLAuMSo1Sp4BblqXGIfaJD+lO4eroibJz4Br1iVSqEXyS+CydYlUapD8GpiwLpGDd8mLwAWBnHW6Z4cmeJb8HjglkPMJ2CmQk4xXySvACYGcJWC/QE4WHiWvAYcFct4AxwVysvEm+SewRyBnDjgtkCOCN8k7BDLmgHMCOWJ4ktwSyHAnGGCbdYENJATPA2cFcsTxIFlC8AJwRiCnCNaSJQS/A04K5BTDUrKE4CrenWQlWULwCnBQIKc4FpIlBK8C+wRyVNCWLCH4C7BbIEcNTckSgtcxvtiTgtbJiITgz1QoGHQk3xbIWAX2CuSYUFryR+BhZsYKFe3khlFa8tHM9cvIHqbNjvGzj6V+ackd33zm+iXgkESRPi5icBuq5JZ8PmPtLE4uuEtQSvLXjLU36G5xjaGU5FcZa6fFWjihlOSpxHXLoi2c4OnOyCTyOzoXeJJ8x7pAKUpI/p647ohkCU+UkPwjYc0t8RaOKCH5d8KaS+ItHNEmbcuTppE7vB5t4Jt1iabT2vhnLpLn82uM/6iV2WOtGng6hGssIVmBnuQq/uiwVnozGeTmYszkAfrHRc7lyWAT+iXvMmvRcAZ3fIsmLRpO/0zukTsfYyYPMOwQTuJBlKCPfx0nh2hBNjsZuaLWouEMm8mDjDsvYyYPMMppdYyOTEa9dtGi4XcvSjLOBaJHdGW7f0WYN1Kuwk3x9+X6w553W8hq1ED+ADSbacxnfhKNAAAAAElFTkSuQmCC" alt="itsanet"></div>
+      <div>
+        <div class="sidebar-title">itsanet</div>
+        <div class="sidebar-sub">Argentina · Mesa de Servicio</div>
+      </div>
+    </div>
+
+    <div class="sidebar-progress">
+      <div class="progress-label"><span>Tu avance</span><span id="progressText">0/9</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <nav class="toc" id="toc">
+      <a href="#inicio" data-id="inicio"><span class="num">01</span><span>Qué es GLPI</span><span class="check">✓</span></a>
+      <a href="#crear-peticion" data-id="crear-peticion"><span class="num">02</span><span>Crear una petición</span><span class="check">✓</span></a>
+      <a href="#respuesta-solucion" data-id="respuesta-solucion"><span class="num">03</span><span>Aceptar o rechazar</span><span class="check">✓</span></a>
+      <a href="#observador-tecnico" data-id="observador-tecnico"><span class="num">04</span><span>Observador y técnico</span><span class="check">✓</span></a>
+      <a href="#autoasignacion" data-id="autoasignacion"><span class="num">05</span><span>Autoasignación</span><span class="check">✓</span></a>
+      <a href="#correos-adjuntos" data-id="correos-adjuntos"><span class="num">06</span><span>Correos y adjuntos</span><span class="check">✓</span></a>
+      <a href="#nuevos-usuarios" data-id="nuevos-usuarios"><span class="num">07</span><span>Nuevos usuarios</span><span class="check">✓</span></a>
+      <a href="#roles-grupos" data-id="roles-grupos"><span class="num">08</span><span>Roles y grupos</span><span class="check">✓</span></a>
+      <a href="#resumen" data-id="resumen"><span class="num">09</span><span>Resumen y cierre</span><span class="check">✓</span></a>
+    </nav>
+
+    <div class="sidebar-foot">
+      soporte.flexnetuio.com<br>
+      Vigente desde el 01/08/2026
+    </div>
+  </aside>
+
+  <main>
+    <div class="content">
+
+      <!-- 01 -->
+      <section id="inicio">
+        <div class="eyebrow"><span class="line"></span>01 · Punto de partida</div>
+        <h2 class="section-title">¿Qué es GLPI y por qué nos importa?</h2>
+        <p class="lede">
+          GLPI es la mesa de servicio (service desk) oficial de ITSANET. Es el canal único por el que
+          cualquier persona de la empresa —administrativa, operativa o de bodega— reporta una falla o pide
+          algo a Tecnología, y por el que Tecnología organiza, prioriza y responde esas solicitudes de forma
+          ordenada y con evidencia.
+        </p>
+
+        <div class="card">
+          <p style="font-size:14.5px;color:var(--ink-soft);">
+            Antes de GLPI, una solicitud podía llegar por llamada, WhatsApp o de pasillo: se perdía el registro,
+            no se sabía quién la estaba atendiendo ni cuánto llevaba pendiente. Con GLPI, <strong style="color:var(--ink);">toda
+            petición queda numerada, con fecha, responsable y estado visible</strong>, lo que permite atender a
+            tiempo, medir el desempeño del equipo técnico y tener un historial confiable cuando se necesite
+            revisar un caso.
+          </p>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-tile"><div class="stat-num">32</div><div class="stat-label">categorías configuradas en el árbol HELPDESK</div></div>
+          <div class="stat-tile"><div class="stat-num">5</div><div class="stat-label">niveles de urgencia disponibles</div></div>
+          <div class="stat-tile"><div class="stat-num">8</div><div class="stat-label">perfiles / roles de usuario</div></div>
+          <div class="stat-tile"><div class="stat-num">3</div><div class="stat-label">grupos de trabajo (equipos)</div></div>
+        </div>
+      </section>
+
+      <!-- 02 -->
+      <section id="crear-peticion">
+        <div class="eyebrow"><span class="line"></span>02 · Lo esencial</div>
+        <h2 class="section-title">Cómo crear una petición correctamente</h2>
+        <p class="lede">
+          En <span class="mono" style="font-size:13.5px;">Crear una petición</span> el portal pide un pequeño
+          formulario ("Describa la incidencia o la petición"). Completarlo bien es lo que permite que un técnico
+          entienda el caso sin tener que preguntar de nuevo.
+        </p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num"></div>
+            <div>
+              <h4>Elige el tipo: <span class="field-name">Incidencia</span> o <span class="field-name">Petición</span></h4>
+              <p><strong style="color:var(--ink);">Incidencia (incidente):</strong> algo que funcionaba y dejó de funcionar
+                o funciona mal — ej. "el lector handheld no enciende", "TMS marca error al facturar".
+                <br><strong style="color:var(--ink);">Petición (requerimiento):</strong> algo nuevo que se solicita y que
+                nunca ha fallado — ej. "necesito un usuario nuevo en Depot", "solicito una laptop para un ingreso".
+                Si tienes dudas, pregúntate: <em>"¿esto antes funcionaba y ahora no?"</em> → Incidencia. <em>"¿estoy pidiendo algo nuevo?"</em> → Petición.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num"></div>
+            <div>
+              <h4>Selecciona la <span class="field-name">Categoría</span> correcta</h4>
+              <p>El árbol de categorías (sección 08 más abajo trae la lista completa filtrable) indica al técnico
+                correcto qué tipo de problema es sin leer todo el texto. Ejemplo: una falla del TMS al facturar
+                va en <span class="mono" style="font-size:12.5px;">HELPDESK › TMS › ERROR</span>, no en "TMS" a secas.
+                Si ninguna subcategoría calza exactamente, elige la más cercana: el técnico puede reclasificarla.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num"></div>
+            <div>
+              <h4>Escribe un <span class="field-name">Título</span> que ya diga lo esencial</h4>
+              <p>El técnico decide qué tan urgente atender un caso muchas veces solo leyendo el título en la lista.
+                Un buen título dice <strong style="color:var(--ink);">qué pasa + dónde/en qué sistema + a quién o qué afecta</strong>,
+                en una sola línea. Evita títulos genéricos como "ayuda", "no funciona" o "urgente".</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num"></div>
+            <div>
+              <h4>Define la <span class="field-name">Urgencia</span> con criterio, no por costumbre</h4>
+              <p>Marcar todo como "Muy alta" hace que nada sea realmente urgente. Usa la tabla de la sección 03
+                para elegir el nivel según el impacto real en la operación, no según lo apurados que estemos.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num"></div>
+            <div>
+              <h4>Redacta la <span class="field-name">Descripción</span> para que el técnico pueda trabajar sin preguntar</h4>
+              <p>Incluye: qué ocurre exactamente, desde cuándo, en qué equipo/usuario/sucursal, qué mensaje de error
+                aparece (si hay) y qué ya intentaste. Adjunta una captura de pantalla siempre que puedas — ver la
+                sección 06 para el tamaño permitido.</p>
+            </div>
+          </div>
+        </div>
+
+        <p style="font-size:12.5px;color:var(--ink-faint);margin:20px 0 6px;">Así se ve un caso bien completado, con los 5 pasos aplicados sobre un ejemplo real del portal:</p>
+        <div class="portal-mock">
+          <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">soporte.flexnetuio.com › Crear una petición</span></div>
+          <div class="body">
+            <div class="cap">Describa la incidencia o la petición</div>
+            <div class="mock-row"><span class="mock-label">Tipo</span><span class="mock-value">Incidencia <span class="chev">▾</span></span></div>
+            <div class="mock-row"><span class="mock-label">Categoría</span><span class="mock-value">HELPDESK › TMS › ERROR <span class="chev">▾</span></span></div>
+            <div class="mock-row"><span class="mock-label">Urgencia</span><span class="mock-value"><span class="mock-pill" style="background:rgba(224,105,42,.18);color:#f2a26a;"><span class="dot2" style="background:#e0692a;"></span>Alta</span><span class="chev">▾</span></span></div>
+            <div class="mock-row"><span class="mock-label">Título</span><span class="mock-value">TMS no permite facturar pedidos en el CD Quito desde las 14:00</span></div>
+            <div class="mock-row"><span class="mock-label">Descripción</span><span class="mock-value text">Al confirmar la factura, TMS muestra "Error de conexión con servidor" y no guarda el pedido. Afecta a los 3 facturadores del turno tarde. Ya intentamos cerrar sesión y volver a entrar, sigue igual.</span></div>
+            <div class="mock-row"><span class="mock-label">Adjuntos</span><span class="mock-drop">captura-error-tms.png · arrastrar o elegir archivo (máx. 32 MB)</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 -->
+      <section id="respuesta-solucion">
+        <div class="eyebrow"><span class="line"></span>03 · Urgencia y respuesta</div>
+        <h2 class="section-title">Niveles de urgencia y la respuesta a tu petición</h2>
+        <p class="lede">
+          Estos son los 5 niveles disponibles en el portal, de mayor a menor impacto sobre la operación.
+          La tabla es ordenable y filtrable — pruébala.
+        </p>
+
+        <div class="data-table" data-table>
+          <div class="table-controls">
+            <input class="table-search" type="search" placeholder="Filtrar niveles de urgencia…" aria-label="Filtrar tabla de urgencias">
+            <span class="table-count"></span>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th data-sort="num">Nivel</th>
+                  <th data-sort="text">Úsala cuando…</th>
+                  <th data-sort="text">Ejemplo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td data-value="1"><span class="pill" style="background:rgba(196,41,26,.12);color:var(--urg-1);"><span class="dot2" style="background:var(--urg-1);"></span>Muy alta</span></td>
+                  <td>Un proceso crítico de la empresa está detenido (facturación, despacho, nómina) o un servicio cayó para toda un área o planta.</td>
+                  <td>TMS caído para todo el CD y no se puede despachar ningún pedido.</td>
+                </tr>
+                <tr>
+                  <td data-value="2"><span class="pill" style="background:rgba(194,90,30,.14);color:var(--urg-2);"><span class="dot2" style="background:var(--urg-2);"></span>Alta</span></td>
+                  <td>Una persona o un puesto de trabajo específico no puede operar y no existe forma alterna de continuar.</td>
+                  <td>Un facturador no puede ingresar al sistema y no hay otro equipo disponible.</td>
+                </tr>
+                <tr>
+                  <td data-value="3"><span class="pill" style="background:rgba(201,147,18,.15);color:var(--urg-3);"><span class="dot2" style="background:var(--urg-3);"></span>Media</span></td>
+                  <td>Hay una molestia o un freno parcial, pero se puede seguir trabajando mientras se resuelve. <em>(nivel por defecto del portal)</em></td>
+                  <td>Un reporte de Power BI carga muy lento pero sí carga.</td>
+                </tr>
+                <tr>
+                  <td data-value="4"><span class="pill" style="background:rgba(47,143,107,.14);color:var(--urg-4);"><span class="dot2" style="background:var(--urg-4);"></span>Baja</span></td>
+                  <td>Mejora, duda de uso o tarea que no bloquea el trabajo diario.</td>
+                  <td>Solicitar una capacitación adicional sobre un módulo de Depot.</td>
+                </tr>
+                <tr>
+                  <td data-value="5"><span class="pill" style="background:rgba(107,119,133,.16);color:var(--urg-5);"><span class="dot2" style="background:var(--urg-5);"></span>Muy baja</span></td>
+                  <td>Solicitud informativa o estética que puede esperar sin afectar la operación.</td>
+                  <td>Sugerir un cambio de color en una plantilla de reporte.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <h3 style="font-size:19px;margin:34px 0 10px;">La respuesta: aceptar o rechazar la solución</h3>
+        <p style="font-size:14.5px;color:var(--ink-soft);max-width:64ch;margin-bottom:16px;">
+          Cuando el técnico termina, cambia la petición a estado <strong style="color:var(--ink);">Resuelto</strong> y
+          describe la solución aplicada. En ese momento te llega un correo (ver sección 06) donde tú, como
+          solicitante, decides:
+        </p>
+
+        <div class="grid-2">
+          <div class="callout good">
+            <span class="ic">✓</span>
+            <div><strong>Aceptar</strong>Confirmas que el problema quedó resuelto. La petición pasa a <strong>Cerrado</strong> y el caso se archiva con esa solución documentada.</div>
+          </div>
+          <div class="callout bad">
+            <span class="ic">✕</span>
+            <div><strong>Rechazar</strong>El problema sigue o la solución no fue la correcta. Explica por qué en el comentario: la petición vuelve a manos del técnico, sin necesidad de crear un caso nuevo.</div>
+          </div>
+        </div>
+
+        <div class="callout info" style="margin-top:14px;">
+          <span class="ic">ℹ</span>
+          <div>Si no respondes, el sistema aplica el cierre automático después del tiempo configurado por Tecnología. Por eso conviene revisar el correo de "Petición resuelta" apenas llega.</div>
+        </div>
+      </section>
+
+      <!-- 04 -->
+      <section id="observador-tecnico">
+        <div class="eyebrow"><span class="line"></span>04 · Actores del caso</div>
+        <h2 class="section-title">Quién es quién en una petición</h2>
+        <p class="lede">Cada caso puede tener hasta tres tipos de actores. Conocerlos evita confusión sobre quién debe actuar.</p>
+
+        <div class="actor-row">
+          <div class="actor">
+            <div class="actor-icon">🙋</div>
+            <span class="tag">Solicitante</span>
+            <h4>Quien abre el caso</h4>
+            <p>La persona que reporta el incidente o hace el requerimiento. Es a quien le llegan los correos de
+              seguimiento y quien acepta o rechaza la solución.</p>
+          </div>
+          <div class="actor">
+            <div class="actor-icon">👁️</div>
+            <span class="tag">Observador</span>
+            <h4>Quien sigue el caso sin ser el dueño</h4>
+            <p>Se agrega en el campo "Observadores" al crear la petición. Recibe las mismas notificaciones que el
+              solicitante (nuevo seguimiento, solución, cierre) pero no puede aceptar ni rechazar por él. Útil para
+              que un jefe de área o un compañero esté al tanto de un caso importante.</p>
+          </div>
+          <div class="actor">
+            <div class="actor-icon">🛠️</div>
+            <span class="tag">Técnico / Mesa de Servicio</span>
+            <h4>Quien resuelve</h4>
+            <p>El técnico sugerido o asignado como responsable del caso. Puede ser una persona puntual o el grupo
+              "Mesa de Servicio" completo, para que cualquiera de sus técnicos lo tome.</p>
+          </div>
+        </div>
+
+        <div class="callout info">
+          <span class="ic">ℹ</span>
+          <div>Al crear la petición puedes sugerir un técnico o grupo en el campo "Asignada a" si ya sabes quién
+            suele atender ese tipo de caso; si lo dejas en blanco, la Mesa de Servicio lo revisa y lo asigna.</div>
+        </div>
+      </section>
+
+      <!-- 05 -->
+      <section id="autoasignacion">
+        <div class="eyebrow"><span class="line"></span>05 · Para el equipo técnico</div>
+        <h2 class="section-title">Autoasignación y ciclo de vida del caso</h2>
+        <p class="lede">
+          Cuando llega una petición nueva, todos los técnicos del grupo correspondiente reciben la alerta. Cualquiera
+          de ellos puede <strong style="color:var(--ink);">autoasignarse</strong> el caso desde el listado de
+          Peticiones, agregándose en "Asignada a", y comenzar a resolverlo de inmediato — sin esperar a que un
+          supervisor lo reparta manualmente. Esto acorta el tiempo entre que el caso se crea y alguien empieza a
+          trabajarlo.
+        </p>
+
+        <div class="flow">
+          <div class="flow-step"><div class="flow-dot" style="background:var(--urg-5);"></div><div class="flow-label">Nuevo</div><div class="flow-sub">caso recién creado</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-dot"></div><div class="flow-label">En curso (asignada)</div><div class="flow-sub">un técnico se autoasignó</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-dot"></div><div class="flow-label">En espera</div><div class="flow-sub">si falta info del usuario</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-dot" style="background:var(--ok);"></div><div class="flow-label">Resuelto</div><div class="flow-sub">técnico documentó la solución</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-dot" style="background:var(--ink-faint);"></div><div class="flow-label">Cerrado</div><div class="flow-sub">solicitante aceptó</div></div>
+        </div>
+        <div class="flow-branch">Si el solicitante rechaza la solución, el caso vuelve automáticamente a "En curso" con el técnico — no se pierde el historial.</div>
+
+        <div class="callout warn" style="margin-top:18px;">
+          <span class="ic">⚡</span>
+          <div><strong>Buena práctica para técnicos</strong>Autoasignarse solo casos que se pueden atender de inmediato
+            evita que una petición quede "tomada" pero abandonada. Si no vas a poder avanzar pronto, déjala para
+            que otro compañero del grupo la tome.</div>
+        </div>
+      </section>
+
+      <!-- 06 -->
+      <section id="correos-adjuntos">
+        <div class="eyebrow"><span class="line"></span>06 · Notificaciones</div>
+        <h2 class="section-title">Correos de seguimiento y archivos adjuntos</h2>
+        <p class="lede">GLPI notifica automáticamente por correo institucional en cada momento clave del caso.</p>
+
+        <div class="data-table" data-table>
+          <div class="table-controls">
+            <input class="table-search" type="search" placeholder="Filtrar correos…" aria-label="Filtrar tabla de correos">
+            <span class="table-count"></span>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th data-sort="text">Correo</th><th data-sort="text">Se envía cuando…</th><th data-sort="text">Qué puedes hacer</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Nueva petición</strong></td><td>Se registra el caso.</td><td>Confirma el número de ticket asignado.</td></tr>
+                <tr><td><strong>Nuevo seguimiento</strong></td><td>El técnico o el solicitante agregan un comentario al caso.</td><td>Leer o responder ampliando información.</td></tr>
+                <tr><td><strong>Petición resuelta</strong></td><td>El técnico documenta la solución aplicada.</td><td>Aceptar o rechazar la solución (sección 03).</td></tr>
+                <tr><td><strong>Clausura de la petición</strong></td><td>El caso se cierra (por aceptación o de forma automática).</td><td>Queda como conclusión y respaldo del caso.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <h3 style="font-size:19px;margin:32px 0 10px;">Tamaño de los archivos adjuntos</h3>
+        <div class="grid-2">
+          <div class="card">
+            <p style="font-size:14px;color:var(--ink-soft);"><strong style="color:var(--ink);">Adjunto directo en el portal</strong> (al crear o dar seguimiento a la petición): actualmente hasta <strong style="color:var(--ink);">32 MB</strong> por archivo — es el límite mostrado hoy en el formulario.</p>
+          </div>
+          <div class="card">
+            <p style="font-size:14px;color:var(--ink-soft);"><strong style="color:var(--ink);">Adjunto respondiendo al correo</strong> de notificación (el mensaje se agrega como seguimiento): límite de <strong style="color:var(--ink);">25 MB</strong> por correo.</p>
+          </div>
+        </div>
+        <div class="callout info" style="margin-top:14px;">
+          <span class="ic">ℹ</span>
+          <div>Ambos límites son configurables por el equipo técnico si un área necesita subir archivos más pesados
+            (por ejemplo, videos o respaldos de bases de datos). Si es tu caso, pídelo a la Mesa de Servicio.</div>
+        </div>
+      </section>
+
+      <!-- 07 -->
+      <section id="nuevos-usuarios">
+        <div class="eyebrow"><span class="line"></span>07 · Alta de personal</div>
+        <h2 class="section-title">Creación de nuevos usuarios</h2>
+        <p class="lede">
+          Cuando ingresa una persona nueva a la empresa, un técnico disponible crea su usuario en GLPI desde
+          <span class="mono" style="font-size:13px;">Administración › Usuarios › Añadir</span>.
+        </p>
+
+        <div class="callout warn">
+          <span class="ic">🔑</span>
+          <div><strong>En ITSANET Argentina la creación de usuarios es manual.</strong> A diferencia de otras sedes,
+            el acceso al portal aquí no está vinculado al usuario de dominio (Directorio Activo): el técnico define
+            directamente el usuario y la contraseña al crear la cuenta en GLPI, y se los entrega a la persona junto
+            con su correo institucional.</div>
+        </div>
+
+        <div class="grid-2" style="margin-top:16px;">
+          <div class="card">
+            <h4 style="font-size:15px;margin-bottom:12px;">Datos indispensables</h4>
+            <ul class="plain">
+              <li><strong style="color:var(--ink);">Nombre y apellido</strong> completos de la persona.</li>
+              <li><strong style="color:var(--ink);">Correo electrónico institucional</strong> — a este llegan todas las notificaciones.</li>
+              <li><strong style="color:var(--ink);">Usuario y contraseña</strong> — los define el técnico al crear la cuenta.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4 style="font-size:15px;margin-bottom:12px;">Dato opcional (según el caso)</h4>
+            <ul class="plain">
+              <li><strong style="color:var(--ink);">Perfil / rol</strong> a otorgar — solo si la persona necesita algo distinto al perfil "Usuario" por defecto (ver sección 08).</li>
+              <li><strong style="color:var(--ink);">Entidad</strong> — normalmente ya viene predefinida (ITSANET Argentina).</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout good" style="margin-top:16px;">
+          <span class="ic">✓</span>
+          <div><strong>Buena práctica al entregar la contraseña:</strong> compártela por un canal distinto al del
+            correo de bienvenida (en persona, por teléfono o chat interno) y pide a la persona que la cambie en su
+            primer ingreso al portal.</div>
+        </div>
+      </section>
+
+      <!-- 08 -->
+      <section id="roles-grupos">
+        <div class="eyebrow"><span class="line"></span>08 · Estructura del portal</div>
+        <h2 class="section-title">Roles, grupos y categorías</h2>
+        <p class="lede">Así está organizado hoy el acceso y la clasificación de casos en el portal. Todas las tablas son ordenables y filtrables.</p>
+
+        <h3 style="font-size:18px;margin-bottom:10px;">Perfiles de usuario (roles)</h3>
+        <div class="data-table" data-table>
+          <div class="table-controls">
+            <input class="table-search" type="search" placeholder="Filtrar roles…" aria-label="Filtrar tabla de roles">
+            <span class="table-count"></span>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th data-sort="text">Perfil</th><th data-sort="text">Para quién es</th><th data-sort="text">Qué puede hacer</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Usuario</strong> <span style="color:var(--ink-faint);font-size:11px;">(por defecto)</span></td><td>Todo el personal de la empresa.</td><td>Crear y seguir sus propias peticiones, ver su estado, responder encuestas.</td></tr>
+                <tr><td><strong>Observador</strong></td><td>Jefaturas o compañeros que deben estar al tanto de un caso.</td><td>Ver el avance y recibir notificaciones de peticiones donde fue agregado, sin poder modificarlas.</td></tr>
+                <tr><td><strong>Tecnico</strong></td><td>Personal de Mesa de Servicio.</td><td>Tomar, trabajar, documentar y resolver peticiones asignadas a él o a su grupo.</td></tr>
+                <tr><td><strong>Hotliner</strong></td><td>Primer nivel de atención (registro telefónico o presencial).</td><td>Registrar y clasificar peticiones a nombre de otras personas.</td></tr>
+                <tr><td><strong>Supervisor</strong></td><td>Coordinadores de un equipo técnico.</td><td>Reasignar, priorizar y validar el trabajo de su grupo.</td></tr>
+                <tr><td><strong>Auditor</strong></td><td>Control interno / calidad.</td><td>Consultar peticiones, reportes e historial, sin poder modificarlos.</td></tr>
+                <tr><td><strong>Admin</strong></td><td>Analistas de GLPI / reingeniería.</td><td>Configurar categorías, plantillas, SLAs y catálogos del área de soporte.</td></tr>
+                <tr><td><strong>Super-Admin</strong></td><td>Reservado para Tecnología.</td><td>Administración total de la plataforma: usuarios, perfiles, entidades.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <h3 style="font-size:18px;margin:30px 0 10px;">Grupos de trabajo</h3>
+        <div class="grid-3" style="margin-bottom:8px;">
+          <div class="card">
+            <h4 style="font-size:14.5px;margin-bottom:6px;">Mesa de Servicio</h4>
+            <p style="font-size:13px;color:var(--ink-soft);">Grupo técnico que recibe y resuelve las peticiones de soporte. Cualquier técnico del grupo puede autoasignarse un caso.</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size:14.5px;margin-bottom:6px;">Operaciones</h4>
+            <p style="font-size:13px;color:var(--ink-soft);">Personal de bodega y logística: solicitantes frecuentes de casos sobre TMS, Depot, handhelds y equipamiento.</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size:14.5px;margin-bottom:6px;">Administrativo</h4>
+            <p style="font-size:13px;color:var(--ink-soft);">Personal administrativo y de recursos humanos: solicitantes frecuentes de casos sobre correo, equipos de oficina y accesos.</p>
+          </div>
+        </div>
+        <p style="font-size:12.5px;color:var(--ink-faint);margin-bottom:20px;">Agrupar por área permite asignar un caso a todo un equipo — no solo a una persona — y estructurar permisos y reportes por proceso. Si el volumen de casos lo justifica, se pueden crear subgrupos adicionales más adelante.</p>
+
+        <div class="callout info" style="margin-bottom:28px;">
+          <span class="ic">⚙</span>
+          <div><strong>Sobre las reglas actuales:</strong> el portal ya tiene habilitado el módulo de reglas de
+            negocio para peticiones (Configuración › Reglas), que permite automatizar asignaciones y clasificación
+            a medida que el equipo defina criterios. Por ahora, mientras esas reglas se afinan, la asignación se
+            maneja principalmente por autoasignación manual del técnico (sección 05).</div>
+        </div>
+
+        <h3 style="font-size:18px;margin-bottom:10px;">Árbol de categorías (HELPDESK)</h3>
+        <div class="data-table" data-table>
+          <div class="table-controls">
+            <input class="table-search" type="search" placeholder="Filtrar categorías, ej. “TMS”, “correo”, “red”…" aria-label="Filtrar tabla de categorías">
+            <span class="table-count"></span>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th data-sort="text">Grupo</th><th data-sort="text">Categoría específica</th><th data-sort="text">Cuándo usarla</th></tr></thead>
+              <tbody>
+                <tr><td>Active Directory</td><td>Active Directory</td><td>Reseteo de contraseña, cuenta bloqueada o permisos de usuario/carpeta de dominio.</td></tr>
+                <tr><td>Conexión</td><td>Aplicativos externos</td><td>Falla de acceso a un aplicativo externo distinto a los ya listados.</td></tr>
+                <tr><td>Conexión</td><td>Depot</td><td>El sistema Depot no carga, da error o va lento.</td></tr>
+                <tr><td>Conexión</td><td>Excel</td><td>Problemas de macros, fórmulas o archivos Excel compartidos.</td></tr>
+                <tr><td>Conexión</td><td>Power BI</td><td>Reportes o dashboards de Power BI no cargan o no conectan.</td></tr>
+                <tr><td>Conexión</td><td>TMS</td><td>Falla de conexión general al sistema TMS.</td></tr>
+                <tr><td>Conexión</td><td>VPN</td><td>No se puede conectar a la VPN institucional.</td></tr>
+                <tr><td>Correo ITSANET</td><td>Actualización de datos</td><td>Cambio de nombre, firma o datos del correo institucional.</td></tr>
+                <tr><td>Correo ITSANET</td><td>Creación</td><td>Solicitud de una cuenta de correo @itsanet.com nueva.</td></tr>
+                <tr><td>Correo ITSANET</td><td>Eliminación</td><td>Baja de una cuenta de correo, por ejemplo salida de personal.</td></tr>
+                <tr><td>Depot</td><td>Actualización de datos</td><td>Corrección de datos maestros dentro de Depot.</td></tr>
+                <tr><td>Depot</td><td>Creación de usuario</td><td>Alta de un usuario nuevo en Depot.</td></tr>
+                <tr><td>Depot</td><td>Error</td><td>Error funcional o de datos dentro de Depot.</td></tr>
+                <tr><td>Infraestructura</td><td>Actividad</td><td>Instalación, movimiento o configuración de equipos.</td></tr>
+                <tr><td>Infraestructura</td><td>Mantenimiento</td><td>Mantenimiento preventivo o correctivo de hardware.</td></tr>
+                <tr><td>Infraestructura</td><td>Redes</td><td>Caída de red, switches, puntos de red o WiFi.</td></tr>
+                <tr><td>Solicitud de equipamiento</td><td>Handheld</td><td>Solicitud o falla de lector/handheld de bodega.</td></tr>
+                <tr><td>Solicitud de equipamiento</td><td>Laptop</td><td>Solicitud, reemplazo o falla de laptop o equipo de cómputo.</td></tr>
+                <tr><td>TMS</td><td>Actualización de datos</td><td>Corrección de datos maestros dentro de TMS.</td></tr>
+                <tr><td>TMS</td><td>Creación de usuario</td><td>Alta de un usuario nuevo en TMS.</td></tr>
+                <tr><td>TMS</td><td>Error</td><td>Error funcional dentro de TMS.</td></tr>
+                <tr><td>TMS</td><td>Integración</td><td>Falla de integración de TMS con otro sistema.</td></tr>
+                <tr><td>TMS</td><td>Mejora / cambio de proceso</td><td>Solicitud de mejora o cambio de proceso dentro de TMS.</td></tr>
+                <tr><td>TMS</td><td>Reportes</td><td>Un reporte de TMS no genera o trae datos incorrectos.</td></tr>
+                <tr><td>General</td><td>Helpdesk (raíz)</td><td>Solo si ninguna subcategoría aplica; el técnico la reclasificará.</td></tr>
+                <tr><td>Control</td><td>Solicitud incompleta o inválida</td><td>Uso interno del técnico cuando el caso no trae la información mínima para trabajarlo.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 09 -->
+      <section id="resumen">
+        <div class="eyebrow"><span class="line"></span>09 · Cierre</div>
+        <h2 class="section-title">Lo que esta gestión ya construyó — y lo que sigue</h2>
+        <p class="lede">
+          GLPI entró en uso oficial en ITSANET Ecuador el 1 de agosto de 2026. En estas primeras semanas el trabajo
+          de reingeniería se concentró en dejar la base bien construida, para que cada caso que se registre de aquí
+          en adelante quede correctamente clasificado y sea fácil de medir.
+        </p>
+
+        <div class="grid-3">
+          <div class="card">
+            <h4 style="font-size:14.5px;margin-bottom:6px;color:var(--accent-strong);">Clasificación</h4>
+            <p style="font-size:13px;color:var(--ink-soft);">32 categorías reales, agrupadas en 7 frentes (Active Directory, Conexión, Correo, Depot, Infraestructura, Equipamiento y TMS), listas para dirigir cada caso al técnico correcto desde el primer clic.</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size:14.5px;margin-bottom:6px;color:var(--accent-strong);">Roles y equipos</h4>
+            <p style="font-size:13px;color:var(--ink-soft);">8 perfiles y 3 grupos de trabajo (Mesa de Servicio, Operaciones, Administrativo) definidos, para que la responsabilidad de cada caso sea clara desde que se crea.</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size:14.5px;margin-bottom:6px;color:var(--accent-strong);">Trazabilidad</h4>
+            <p style="font-size:13px;color:var(--ink-soft);">Cada petición queda con número, historial de seguimientos y solución documentada — evidencia que antes no existía.</p>
+          </div>
+        </div>
+
+        <div class="callout info" style="margin-top:18px;">
+          <span class="ic">📊</span>
+          <div><strong>Sobre las cifras de casos gestionados:</strong> el módulo de Estadísticas de GLPI (Soporte ›
+            Estadísticas) permite ver en cualquier momento el número real de peticiones, por categoría, urgencia y
+            tiempos de respuesta. Como el sistema recién arrancó, lo más honesto es dejar este espacio para
+            actualizarlo con datos reales apenas se acumulen las primeras semanas de operación, en vez de estimar
+            un número. Este documento queda preparado para incorporarlos.</div>
+        </div>
+
+        <div class="card" style="margin-top:26px; text-align:center; padding:30px 24px; background:linear-gradient(135deg,var(--surface),var(--surface-2));">
+          <p style="font-family:'Barlow Semi Condensed',sans-serif; font-weight:700; font-size:22px; max-width:52ch; margin:0 auto;">
+            Cada petición bien registrada es una hora menos perdida buscando información y un problema menos que se repite.
+          </p>
+          <p style="font-size:13.5px;color:var(--ink-soft); margin-top:10px;">Gracias por ser parte de este arranque — lo que registres desde hoy es la base del servicio de mañana.</p>
+        </div>
+      </section>
+
+      <footer class="page-end">
+        <span>Guía de inducción · Mesa de Servicio GLPI · ITSANET Argentina</span>
+        <span>soporte.flexnetuio.com</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+  // ---------- mobile sidebar ----------
+  var sidebar = document.getElementById('sidebar');
+  var menuBtn = document.getElementById('menuBtn');
+  var scrim = document.getElementById('scrim');
+  function openMenu(){ sidebar.classList.add('open'); scrim.classList.add('show'); }
+  function closeMenu(){ sidebar.classList.remove('open'); scrim.classList.remove('show'); }
+  if(menuBtn){ menuBtn.addEventListener('click', function(){ sidebar.classList.contains('open') ? closeMenu() : openMenu(); }); }
+  if(scrim){ scrim.addEventListener('click', closeMenu); }
+  document.querySelectorAll('nav.toc a').forEach(function(a){
+    a.addEventListener('click', function(){ closeMenu(); });
+  });
+
+  // ---------- scrollspy + automatic "read" tracking ----------
+  var links = Array.prototype.slice.call(document.querySelectorAll('nav.toc a'));
+  var sections = links.map(function(a){ return document.getElementById(a.dataset.id); }).filter(Boolean);
+
+  var STORE_KEY = 'glpi-induccion-progreso';
+  function loadVisited(){
+    try{ return JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); }catch(e){ return {}; }
+  }
+  function saveVisited(v){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(v)); }catch(e){}
+  }
+  var visited = loadVisited();
+
+  function renderProgress(){
+    var total = links.length, done = 0;
+    links.forEach(function(a){
+      var id = a.dataset.id;
+      var isDone = !!visited[id];
+      a.classList.toggle('done', isDone);
+      if(isDone) done++;
+    });
+    var fill = document.getElementById('progressFill');
+    var text = document.getElementById('progressText');
+    if(fill) fill.style.width = (total ? (done/total*100) : 0) + '%';
+    if(text) text.textContent = done + '/' + total;
+  }
+  renderProgress();
+
+  if('IntersectionObserver' in window && sections.length){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        var link = links.find(function(a){ return a.dataset.id === entry.target.id; });
+        if(!link) return;
+        if(entry.isIntersecting){
+          links.forEach(function(a){ a.classList.remove('active'); });
+          link.classList.add('active');
+          // pasar por la sección = queda marcada como revisada, automáticamente
+          if(!visited[entry.target.id]){
+            visited[entry.target.id] = true;
+            saveVisited(visited);
+            renderProgress();
+          }
+        }
+      });
+    }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+    sections.forEach(function(s){ io.observe(s); });
+  }
+
+  // ---------- sortable + filterable tables ----------
+  document.querySelectorAll('[data-table]').forEach(function(root){
+    var table = root.querySelector('table');
+    var tbody = table.tBodies[0];
+    var rows = Array.prototype.slice.call(tbody.rows);
+    var input = root.querySelector('.table-search');
+    var countEl = root.querySelector('.table-count');
+
+    function updateCount(){
+      var visibleRows = rows.filter(function(r){ return r.style.display !== 'none'; }).length;
+      if(countEl) countEl.textContent = visibleRows + ' / ' + rows.length + ' filas';
+    }
+    updateCount();
+
+    if(input){
+      input.addEventListener('input', function(){
+        var q = input.value.trim().toLowerCase();
+        rows.forEach(function(r){
+          r.style.display = r.textContent.toLowerCase().indexOf(q) !== -1 ? '' : 'none';
+        });
+        updateCount();
+      });
+    }
+
+    table.querySelectorAll('th[data-sort]').forEach(function(th){
+      th.addEventListener('click', function(){
+        var type = th.dataset.sort;
+        var asc = th.dataset.dir !== 'asc';
+        table.querySelectorAll('th[data-sort]').forEach(function(h){
+          h.removeAttribute('data-dir');
+          var ic = h.querySelector('.sort-ic'); if(ic) ic.remove();
+        });
+        th.dataset.dir = asc ? 'asc' : 'desc';
+        var colIndex = Array.prototype.indexOf.call(th.parentNode.children, th);
+        var sorted = rows.slice().sort(function(a,b){
+          var aCell = a.cells[colIndex], bCell = b.cells[colIndex];
+          var av = aCell.dataset.value != null ? aCell.dataset.value : aCell.textContent.trim();
+          var bv = bCell.dataset.value != null ? bCell.dataset.value : bCell.textContent.trim();
+          if(type === 'num'){
+            av = parseFloat(av) || 0; bv = parseFloat(bv) || 0;
+            return asc ? av - bv : bv - av;
+          }
+          return asc ? av.localeCompare(bv, 'es') : bv.localeCompare(av, 'es');
+        });
+        sorted.forEach(function(r){ tbody.appendChild(r); });
+        var icon = document.createElement('span');
+        icon.className = 'sort-ic';
+        icon.textContent = asc ? '▲' : '▼';
+        th.appendChild(icon);
+      });
+    });
+  });
+})();
+</script>
