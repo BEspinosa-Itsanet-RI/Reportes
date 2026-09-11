@@ -1,0 +1,889 @@
+<title>Crear un Ticket en GLPI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    /* ITSANET brand — muestreado del logo oficial */
+    --brand:#1c58d7;
+    --brand-dark:#123f9e;
+    --brand-darker:#0e2f78;
+    --brand-soft:#e9f0fd;
+    --brand-soft-2:#d7e4fb;
+
+    --paper:#f4f6fb;
+    --paper-raised:#ffffff;
+    --ink:#161f2c;
+    --ink-soft:#4d5c72;
+    --ink-faint:#7d8ba0;
+    --line:#dfe6f2;
+    --line-soft:#edf1f8;
+    --accent:var(--brand);
+    --accent-strong:var(--brand-dark);
+    --accent-ink:#ffffff;
+    --accent-soft:var(--brand-soft);
+    --cta:#dd7a1a;
+    --cta-dark:#b8630f;
+    --cta-soft:#fdeee0;
+    --good:#1f8a5c;
+    --good-soft:#e2f5ec;
+    --warn:#b9770f;
+    --warn-soft:#fbeed9;
+    --bad:#c8453f;
+    --bad-soft:#fbe6e5;
+    --shadow:0 1px 2px rgba(20,40,80,.05), 0 10px 26px -14px rgba(20,40,80,.22);
+
+    /* pantalla GLPI simulada — reskin claro con los colores de la empresa */
+    --glpi-page:#eef2fb;
+    --glpi-sidebar:var(--brand);
+    --glpi-sidebar-ink:#ffffff;
+    --glpi-sidebar-ink-dim:rgba(255,255,255,.74);
+    --glpi-sidebar-active:rgba(255,255,255,.18);
+    --glpi-header:#ffffff;
+    --glpi-card:#ffffff;
+    --glpi-border:#dde5f3;
+    --glpi-strip:#f4f7fc;
+    --glpi-field:#f5f8fd;
+    --glpi-field-border:#d7e1f1;
+    --glpi-text:#16202c;
+    --glpi-text-dim:#66768c;
+    --glpi-link:var(--brand);
+    --glpi-btn:var(--brand);
+    --glpi-btn-border:var(--brand-dark);
+    --glpi-btn-ink:#ffffff;
+    --glpi-danger:#d64545;
+    --glpi-avatar:var(--brand);
+  }
+  *{box-sizing:border-box;}
+  html{color-scheme:light;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Hanken Grotesk', system-ui, -apple-system, "Segoe UI", sans-serif;padding:28px 20px 60px;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1360px;margin:0 auto;}
+  .mono{font-family:'IBM Plex Mono', ui-monospace, monospace;}
+
+  .top{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between;margin-bottom:22px;}
+  .eyebrow{display:inline-flex;align-items:center;gap:7px;font-family:'IBM Plex Mono', monospace;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--brand);background:var(--brand-soft);border:1px solid var(--brand-soft-2);padding:5px 10px;border-radius:999px;margin-bottom:12px;}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--good);}
+  h1{font-size:clamp(26px,3.4vw,36px);line-height:1.12;margin:0 0 8px;font-weight:800;letter-spacing:-.015em;text-wrap:balance;color:var(--ink);}
+  .sub{color:var(--ink-soft);font-size:15.5px;max-width:60ch;line-height:1.55;margin:0;}
+  .stats{display:flex;gap:10px;flex-wrap:wrap;}
+  .stat{background:var(--paper-raised);border:1px solid var(--line);border-radius:12px;padding:10px 14px;min-width:96px;box-shadow:var(--shadow);}
+  .stat b{display:block;font-size:19px;font-weight:800;line-height:1.1;color:var(--brand-dark);}
+  .stat span{display:block;font-size:11px;color:var(--ink-faint);margin-top:2px;letter-spacing:.02em;}
+
+  .tour{
+    display:grid;grid-template-columns:196px minmax(420px,1fr) 296px;grid-template-areas:"rail stage panel";
+    gap:16px;background:var(--paper-raised);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow);margin-top:24px;
+  }
+  @media (max-width:980px){
+    .tour{grid-template-columns:1fr;grid-template-areas:"rail" "stage" "panel";}
+    .rail{flex-direction:row !important;overflow-x:auto;gap:6px !important;padding-bottom:4px;}
+    .rail .rail-title{display:none;}
+    .rail .step-btn{flex:0 0 auto;white-space:nowrap;}
+  }
+
+  .rail{grid-area:rail;display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .rail-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-faint);padding:4px 10px 8px;}
+  .step-btn{display:flex;align-items:center;gap:9px;text-align:left;border:1px solid transparent;background:none;border-radius:10px;padding:7px 9px;cursor:pointer;color:var(--ink-soft);font:inherit;font-size:13px;transition:background .15s ease,color .15s ease;}
+  .step-btn:hover{background:var(--line-soft);}
+  .step-btn .num{flex:none;width:21px;height:21px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;background:var(--paper);border:1px solid var(--line);color:var(--ink-faint);}
+  .step-btn.done .num{background:var(--good-soft);border-color:transparent;color:var(--good);}
+  .step-btn.active{background:var(--brand-soft);color:var(--ink);font-weight:600;}
+  .step-btn.active .num{background:var(--brand);border-color:var(--brand);color:#fff;}
+
+  .stagecol{grid-area:stage;display:flex;flex-direction:column;gap:12px;min-width:0;}
+  .progress-track{height:6px;border-radius:999px;background:var(--line-soft);overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--brand),#5f8cf0);border-radius:999px;width:0%;transition:width .35s ease;}
+
+  .stage-frame{border:1px solid var(--line);border-radius:14px;overflow:auto;background:var(--paper);}
+  .stage-chrome{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--line-soft);border-bottom:1px solid var(--line);position:sticky;left:0;}
+  .stage-chrome .dots{display:flex;gap:5px;flex:none;}
+  .stage-chrome .dots i{width:9px;height:9px;border-radius:50%;background:#cfd8e6;display:block;}
+  .stage-chrome .url{flex:1;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-faint);background:var(--paper-raised);border:1px solid var(--line);border-radius:6px;padding:4px 9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:160px;}
+
+  .stage{position:relative;background:var(--glpi-page);min-width:640px;min-height:460px;overflow:hidden;}
+  .glpi-shell{display:flex;align-items:stretch;min-height:460px;}
+  .glpi-sidebar{flex:0 0 150px;background:var(--glpi-sidebar);padding:14px;}
+  .glpi-brand{margin-bottom:18px;}
+  .glpi-brand img{display:block;width:112px;height:auto;}
+  .glpi-nav{display:flex;flex-direction:column;gap:1px;}
+  .glpi-nav a{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;color:var(--glpi-sidebar-ink-dim);font-size:11.5px;font-weight:600;}
+  .glpi-nav a .ic{width:14px;text-align:center;font-size:12px;}
+  .glpi-nav a.on{background:var(--glpi-sidebar-active);color:var(--glpi-sidebar-ink);}
+
+  .glpi-main{flex:1;min-width:0;display:flex;flex-direction:column;}
+  .glpi-head{display:flex;align-items:center;justify-content:space-between;padding:11px 20px;background:var(--glpi-header);border-bottom:1px solid var(--glpi-border);}
+  .glpi-crumb{font-size:11.5px;color:var(--glpi-text-dim);display:flex;gap:6px;align-items:center;}
+  .glpi-crumb b{color:var(--glpi-text);font-weight:600;}
+  .glpi-avatar{width:26px;height:26px;border-radius:50%;background:var(--glpi-avatar);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;font-family:'IBM Plex Mono',monospace;}
+  .glpi-content{padding:18px 20px;flex:1;}
+
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  .home-card{background:var(--glpi-card);border:1px solid var(--glpi-border);border-radius:10px;overflow:hidden;max-width:420px;box-shadow:var(--shadow);}
+  .home-card-head{display:flex;align-items:center;justify-content:space-between;padding:12px 15px;background:var(--glpi-strip);border-bottom:1px solid var(--glpi-border);}
+  .home-card-head h4{margin:0;color:var(--glpi-text);font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:7px;}
+  .glpi-btn-outline{font:inherit;font-family:'Hanken Grotesk',sans-serif;font-size:11.5px;font-weight:700;color:var(--glpi-link);background:#fff;border:1px solid var(--glpi-link);border-radius:6px;padding:6px 10px;display:inline-flex;align-items:center;gap:5px;}
+  .home-row{display:flex;align-items:center;justify-content:space-between;padding:9px 15px;font-size:12.5px;color:var(--glpi-text);border-top:1px solid var(--glpi-border);}
+  .home-row .lbl{display:flex;align-items:center;gap:9px;}
+  .home-row .dot{width:7px;height:7px;border-radius:50%;background:var(--ink-faint);}
+  .home-row .dot.new{background:#33ab72;}
+  .home-row .dot.progress{background:var(--brand);}
+  .home-row .count{min-width:20px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;background:var(--glpi-field);border:1px solid var(--glpi-field-border);border-radius:5px;padding:2px 5px;color:var(--glpi-text);}
+
+  .glpi-formcard{background:var(--glpi-card);border:1px solid var(--glpi-border);border-radius:10px;overflow:hidden;max-width:640px;box-shadow:var(--shadow);}
+  .glpi-formcard-head{padding:13px 18px;color:var(--glpi-text);font-weight:700;font-size:13.5px;background:var(--glpi-strip);border-bottom:1px solid var(--glpi-border);}
+  .glpi-formcard-body{padding:14px 18px 4px;}
+
+  .f-field{display:flex;gap:14px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--glpi-border);}
+  .f-field:first-child{border-top:none;}
+  .f-label{flex:0 0 106px;text-align:right;padding-top:8px;font-size:11.5px;font-weight:600;color:var(--glpi-text);line-height:1.3;}
+  .f-label .req{color:var(--glpi-danger);}
+  .f-control{flex:1;min-width:0;}
+  .f-input{background:var(--glpi-field);border:1px solid var(--glpi-field-border);border-radius:7px;padding:8px 10px;font-size:12px;color:var(--glpi-link);font-weight:600;min-height:16px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .f-input .ph{color:var(--glpi-text-dim);font-weight:500;}
+  .f-input .caret{color:var(--glpi-text-dim);font-size:9px;}
+  .f-input.plain{color:var(--glpi-text);font-weight:500;}
+  .f-textarea{min-height:56px;align-items:flex-start;line-height:1.5;color:var(--glpi-text);font-weight:500;}
+  .f-file{border:1.5px dashed var(--glpi-field-border);border-radius:8px;padding:13px;text-align:center;font-size:11px;color:var(--glpi-text-dim);background:var(--glpi-field);}
+  .f-file b{color:var(--glpi-text);}
+  .f-file .btns{display:flex;gap:6px;justify-content:center;margin-top:8px;}
+  .f-file .btns span{background:#fff;border:1px solid var(--glpi-field-border);border-radius:5px;padding:4px 8px;font-size:10.5px;color:var(--glpi-text-dim);}
+  .f-submit-bar{display:flex;justify-content:flex-end;margin-top:6px;padding:12px 18px;background:var(--glpi-strip);border-top:1px solid var(--glpi-border);}
+  .glpi-btn-solid{font:inherit;font-size:12px;font-weight:700;color:var(--glpi-btn-ink);background:var(--glpi-btn);border:1px solid var(--glpi-btn-border);border-radius:7px;padding:8px 13px;display:inline-flex;align-items:center;gap:5px;}
+
+  .spotlight{position:absolute;pointer-events:none;border-radius:10px;opacity:0;box-shadow:0 0 0 4000px rgba(18,28,48,.4), 0 0 0 2px var(--brand), 0 0 18px 3px rgba(28,88,215,.4);z-index:2;}
+  @media (prefers-reduced-motion: no-preference){.spotlight{transition:top .32s ease,left .32s ease,width .32s ease,height .32s ease,opacity .2s ease;}}
+
+  .done-wrap{text-align:center;padding:30px 10px 10px;}
+  .done-check{width:48px;height:48px;border-radius:50%;background:var(--good-soft);color:var(--good);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:24px;}
+  .done-wrap h4{color:var(--glpi-text);margin:0 0 6px;font-size:16px;}
+  .done-wrap p{color:var(--glpi-text-dim);font-size:12.5px;margin:0 auto 16px;max-width:40ch;line-height:1.6;}
+  .ticket-chip{display:inline-flex;align-items:center;gap:8px;background:var(--glpi-card);border:1px solid var(--glpi-border);border-radius:9px;padding:8px 14px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--glpi-text);box-shadow:var(--shadow);}
+  .ticket-chip .st{background:var(--good-soft);color:var(--good);font-size:10px;font-weight:700;border-radius:999px;padding:2px 7px;}
+
+  .panel{grid-area:panel;border:1px solid var(--line);border-radius:14px;background:var(--paper-raised);padding:16px;position:relative;display:flex;flex-direction:column;min-width:0;}
+  .panel::before{content:"";position:absolute;left:-9px;top:var(--arrow-top,40px);width:16px;height:16px;background:var(--paper-raised);border-left:1px solid var(--line);border-bottom:1px solid var(--line);transform:rotate(45deg);transition:top .32s ease;display:var(--arrow-display,block);}
+  .panel-badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+  .badge{font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;border-radius:999px;padding:3px 8px;}
+  .badge.req{background:var(--bad-soft);color:var(--bad);}
+  .badge.opt{background:var(--line-soft);color:var(--ink-soft);}
+  .badge.info{background:var(--brand-soft);color:var(--brand-dark);}
+  .badge.ok{background:var(--good-soft);color:var(--good);}
+  .panel h3{margin:0 0 8px;font-size:16.5px;font-weight:800;letter-spacing:-.01em;line-height:1.25;color:var(--ink);}
+  .panel p{margin:0;color:var(--ink-soft);font-size:13.5px;line-height:1.62;flex:1;}
+  .step-count{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-faint);margin-bottom:6px;}
+
+  .controls{display:flex;flex-direction:column;gap:10px;margin-top:16px;}
+  .nav-btns{display:flex;gap:8px;flex-wrap:wrap;}
+  .btn{font:inherit;font-size:13px;font-weight:700;border-radius:9px;padding:9px 14px;cursor:pointer;border:1px solid var(--line);background:var(--paper-raised);color:var(--ink);transition:transform .1s ease,background .15s ease,box-shadow .15s ease;}
+  .btn:hover{background:var(--line-soft);}
+  .btn:active{transform:scale(.97);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;flex:1;}
+  .btn.primary:hover{background:var(--brand-dark);border-color:var(--brand-dark);}
+  .btn.ghost{flex:none;}
+  @keyframes pulseCta{0%,100%{box-shadow:0 0 0 0 rgba(221,122,26,.45);}50%{box-shadow:0 0 0 7px rgba(221,122,26,0);}}
+  .btn.primary.pulsing{background:var(--cta);border-color:var(--cta-dark);}
+  @media (prefers-reduced-motion: no-preference){.btn.primary.pulsing{animation:pulseCta 1.6s ease-in-out infinite;}}
+
+  .auto-toggle{display:flex;align-items:center;gap:9px;padding-top:8px;border-top:1px solid var(--line-soft);}
+  .switch{position:relative;width:38px;height:22px;border-radius:999px;background:var(--line);border:none;cursor:pointer;flex:none;}
+  .switch::after{content:"";position:absolute;top:2.5px;left:2.5px;width:17px;height:17px;border-radius:50%;background:var(--paper-raised);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .18s ease;}
+  .switch.on{background:var(--cta);}
+  .switch.on::after{transform:translateX(16px);}
+  .auto-label{font-size:12px;color:var(--ink-soft);}
+  .auto-label b{color:var(--ink);}
+
+  .tip{display:flex;gap:9px;align-items:flex-start;background:var(--cta-soft);border:1px solid #f3d9b9;border-radius:12px;padding:11px 13px;margin-top:14px;font-size:12px;color:var(--ink-soft);line-height:1.55;}
+  .tip .ic{flex:none;font-size:15px;}
+  .tip b{color:var(--ink);}
+
+  /* cursor guiado + escritura animada */
+  .cursor{position:absolute;width:20px;height:20px;pointer-events:none;z-index:6;opacity:0;transform:translate(-3px,-1px);transition:left .55s cubic-bezier(.4,0,.2,1),top .55s cubic-bezier(.4,0,.2,1),opacity .25s ease;}
+  .cursor.show{opacity:1;}
+  .cursor svg{filter:drop-shadow(0 2px 3px rgba(10,20,40,.35));}
+  .ripple{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:rgba(28,88,215,.30);border:2px solid var(--brand);pointer-events:none;z-index:5;opacity:0;}
+  @media (prefers-reduced-motion: no-preference){
+    .ripple.go{animation:rippleGo .55s ease-out;}
+  }
+  @keyframes rippleGo{0%{opacity:.85;transform:scale(.4);}100%{opacity:0;transform:scale(3);}}
+  .caret-blink{display:inline-block;width:2px;background:var(--brand);margin-left:1px;animation:caretBlink .9s step-end infinite;}
+  @keyframes caretBlink{50%{opacity:0;}}
+  .opt-flash{position:absolute;z-index:6;background:#fff;border:1px solid var(--glpi-field-border);border-radius:8px;box-shadow:0 6px 18px -6px rgba(20,40,80,.35);padding:6px;display:flex;flex-direction:column;gap:2px;opacity:0;transform:translateY(-4px);pointer-events:none;transition:opacity .18s ease,transform .18s ease;min-width:150px;}
+  .opt-flash.show{opacity:1;transform:translateY(0);}
+  .opt-flash span{font-size:10.5px;padding:3px 7px;border-radius:5px;color:var(--glpi-text-dim);white-space:nowrap;}
+  .opt-flash span.pick{color:var(--brand-dark);font-weight:700;background:var(--brand-soft);}
+
+  .hint-bubble{position:absolute;z-index:7;max-width:216px;background:#fff;border:1.5px solid var(--brand);border-radius:10px;padding:8px 11px 9px;font-size:11.5px;line-height:1.48;color:var(--ink);box-shadow:0 10px 22px -10px rgba(20,40,80,.4);opacity:0;pointer-events:none;transition:opacity .2s ease,left .5s cubic-bezier(.4,0,.2,1),top .5s cubic-bezier(.4,0,.2,1);}
+  .hint-bubble .lbl{display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--brand);margin-bottom:3px;}
+  .hint-bubble.show{opacity:1;}
+  .hint-bubble::after{content:"";position:absolute;width:9px;height:9px;background:#fff;left:16px;}
+  .hint-bubble.below::after{top:-5.5px;border-left:1.5px solid var(--brand);border-top:1.5px solid var(--brand);transform:rotate(45deg);}
+  .hint-bubble.above::after{bottom:-5.5px;border-right:1.5px solid var(--brand);border-bottom:1.5px solid var(--brand);transform:rotate(45deg);}
+
+  /* buscador y tabla de categorías */
+  .lookup{margin-top:22px;background:var(--paper-raised);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:var(--shadow);}
+  .lookup-head h2{font-size:19px;margin:0 0 4px;font-weight:800;letter-spacing:-.01em;color:var(--ink);}
+  .lookup-head p{margin:0 0 14px;color:var(--ink-soft);font-size:13.5px;}
+  .search-box{position:relative;margin-bottom:6px;}
+  .search-box svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--ink-faint);pointer-events:none;}
+  .search-box input{width:100%;font:inherit;font-size:14px;padding:11px 14px 11px 38px;border-radius:11px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);}
+  .search-box input:focus{outline:none;border-color:var(--brand);background:#fff;}
+  .search-meta{font-size:11.5px;color:var(--ink-faint);margin:8px 2px 12px;}
+  .step-hits{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+  .step-hit{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid var(--line);background:var(--brand-soft);border-radius:9px;padding:8px 12px;cursor:pointer;font:inherit;font-size:12.5px;color:var(--ink);}
+  .step-hit:hover{background:var(--brand-soft-2);}
+  .step-hit .tag{flex:none;font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:700;color:var(--brand-dark);background:#fff;border-radius:5px;padding:2px 6px;}
+  .cat-table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;}
+  table.cat-table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:560px;}
+  table.cat-table th{text-align:left;background:var(--glpi-strip);color:var(--ink-soft);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;padding:9px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;}
+  table.cat-table td{padding:8px 12px;border-bottom:1px solid var(--line-soft);color:var(--ink-soft);vertical-align:top;}
+  table.cat-table tr:last-child td{border-bottom:none;}
+  table.cat-table td.grupo{color:var(--ink);font-weight:700;white-space:nowrap;}
+  table.cat-table td.cat{color:var(--brand-dark);font-weight:600;white-space:nowrap;}
+  table.cat-table tr.hidden{display:none;}
+  table.cat-table tr.internal td.cat::after{content:" (uso técnico)";font-weight:500;color:var(--ink-faint);font-size:10.5px;}
+  table.cat-table mark{background:#fde08a;color:inherit;border-radius:3px;padding:0 1px;}
+  .no-hits{padding:16px;text-align:center;color:var(--ink-faint);font-size:13px;}
+
+  footer{margin-top:30px;text-align:center;color:var(--ink-faint);font-size:12px;line-height:1.7;}
+</style>
+
+<div class="wrap">
+
+  <div class="top">
+    <div>
+      <div class="eyebrow"><span class="dot"></span> Mesa de servicio · 192.168.92.43 (ITSANET Argentina)</div>
+      <h1>Cómo crear un ticket en GLPI</h1>
+      <p class="sub">Sigue el cursor en cada paso: te muestra dónde hacer clic, qué escribir y cómo redactarlo para que tu caso quede claro desde el primer envío.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>11</b><span>pasos guiados</span></div>
+      <div class="stat"><b>2</b><span>campos obligatorios</span></div>
+      <div class="stat"><b>~2 min</b><span>tiempo estimado</span></div>
+    </div>
+  </div>
+
+  <div class="tour">
+    <nav class="rail" id="rail" aria-label="Pasos de la guía">
+      <div class="rail-title">Recorrido</div>
+    </nav>
+
+    <div class="stagecol">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+      <div class="stage-frame">
+        <div class="stage-chrome">
+          <div class="dots"><i></i><i></i><i></i></div>
+          <div class="url" id="stageUrl">192.168.92.43/front/helpdesk.public.php</div>
+        </div>
+        <div class="stage" id="stage">
+          <div class="glpi-shell">
+            <div class="glpi-sidebar">
+              <div class="glpi-brand">
+                <img src="data:image/png;base64,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" alt="itsanet Argentina" width="112" height="36">
+              </div>
+              <div class="glpi-nav" id="glpiNav">
+                <a data-nav="home"><span class="ic">⌂</span>Inicio</a>
+                <a data-nav="form"><span class="ic">＋</span>Crear una petición</a>
+                <a><span class="ic">◔</span>Peticiones</a>
+                <a><span class="ic">▤</span>Reservations</a>
+                <a><span class="ic">?</span>Preguntas frecuentes</a>
+              </div>
+            </div>
+
+            <div class="glpi-main">
+              <div class="glpi-head">
+                <div class="glpi-crumb" id="glpiCrumb">🏠 <b>Inicio</b></div>
+                <div class="glpi-avatar">EB</div>
+              </div>
+
+              <div class="glpi-content">
+                <!-- HOME -->
+                <div class="screen" id="screen-home">
+                  <div class="home-card">
+                    <div class="home-card-head">
+                      <h4>⚠ Peticiones</h4>
+                      <span class="glpi-btn-outline" data-field="crear">＋ Crear una petición</span>
+                    </div>
+                    <div class="home-row"><span class="lbl"><span class="dot new"></span>Nuevo</span><span class="count" id="cnt-nuevo">0</span></div>
+                    <div class="home-row"><span class="lbl"><span class="dot progress"></span>En curso (asignada)</span><span class="count">1</span></div>
+                    <div class="home-row"><span class="lbl"><span class="dot"></span>En curso (planificada)</span><span class="count">0</span></div>
+                    <div class="home-row"><span class="lbl"><span class="dot"></span>En espera</span><span class="count">0</span></div>
+                    <div class="home-row"><span class="lbl"><span class="dot"></span>Resuelto</span><span class="count">0</span></div>
+                    <div class="home-row"><span class="lbl"><span class="dot"></span>Cerrado</span><span class="count">0</span></div>
+                  </div>
+                </div>
+
+                <!-- FORM -->
+                <div class="screen" id="screen-form">
+                  <div class="glpi-formcard">
+                    <div class="glpi-formcard-head">Describa la incidencia o la petición</div>
+                    <div class="glpi-formcard-body">
+                      <div class="f-field" data-field="tipo">
+                        <div class="f-label">Tipo</div>
+                        <div class="f-control"><div class="f-input"><span id="v-tipo">Incidencia</span><span class="caret">▾</span></div></div>
+                      </div>
+                      <div class="f-field" data-field="categoria">
+                        <div class="f-label">Categoría</div>
+                        <div class="f-control"><div class="f-input"><span id="v-categoria" class="ph">-----</span><span class="caret">▾</span></div></div>
+                      </div>
+                      <div class="f-field" data-field="urgencia">
+                        <div class="f-label">Urgencia</div>
+                        <div class="f-control"><div class="f-input"><span id="v-urgencia">Media</span><span class="caret">▾</span></div></div>
+                      </div>
+                      <div class="f-field" data-field="elementos">
+                        <div class="f-label">Elementos<br>asociados</div>
+                        <div class="f-control"><div class="f-input plain"><span id="v-elementos" class="ph">＋ Añadir</span></div></div>
+                      </div>
+                      <div class="f-field" data-field="observadores">
+                        <div class="f-label">Observadores</div>
+                        <div class="f-control"><div class="f-input plain"><span id="v-observadores" class="ph">Buscar persona…</span></div></div>
+                      </div>
+                      <div class="f-field" data-field="titulo">
+                        <div class="f-label">Título</div>
+                        <div class="f-control"><div class="f-input plain"><span id="v-titulo" class="ph">&nbsp;</span></div></div>
+                      </div>
+                      <div class="f-field" data-field="descripcion">
+                        <div class="f-label">Descripción <span class="req">*</span></div>
+                        <div class="f-control"><div class="f-input f-textarea"><span id="v-descripcion" class="ph">&nbsp;</span></div></div>
+                      </div>
+                      <div class="f-field" data-field="adjunto">
+                        <div class="f-label">Archivo(s)</div>
+                        <div class="f-control"><div class="f-file" id="v-adjunto">Arrastra y suelta el archivo aquí, o <b>Elegir archivos</b><div class="btns"><span>Elegir archivos</span><span>Ningún archivo seleccionado</span></div></div></div>
+                      </div>
+                    </div>
+                    <div class="f-submit-bar" data-field="enviar">
+                      <span class="glpi-btn-solid">＋ Enviar mensaje</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- DONE -->
+                <div class="screen" id="screen-done">
+                  <div class="done-wrap">
+                    <div class="done-check">✓</div>
+                    <h4>Petición creada correctamente</h4>
+                    <p>Recibirás una notificación por correo institucional cada vez que un técnico responda o cambie el estado de tu caso.</p>
+                    <div class="ticket-chip">#4128 · No puedo generar la orden de picking… <span class="st">NUEVO</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="spotlight" id="spotlight"></div>
+          <div class="opt-flash" id="optFlash"></div>
+          <div class="ripple" id="ripple"></div>
+          <div class="cursor" id="cursor">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M2 1.5 L2 16.5 L6.2 12.8 L8.7 18 L11 17 L8.6 11.8 L14 11.6 Z" fill="#ffffff" stroke="#16202c" stroke-width="1.1" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="hint-bubble" id="hintBubble"><span class="lbl">💬 En este paso</span><span id="hintText"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel">
+      <div class="step-count" id="stepCount">Paso 1 de 11</div>
+      <div class="panel-badges" id="panelBadges"></div>
+      <h3 id="panelTitle">—</h3>
+      <p id="panelDesc">—</p>
+
+      <div class="controls">
+        <div class="nav-btns">
+          <button class="btn ghost" id="btnPrev">←</button>
+          <button class="btn primary" id="btnNext">Siguiente →</button>
+        </div>
+        <div class="nav-btns">
+          <button class="btn ghost" id="btnReset" style="flex:1">↺ Reiniciar recorrido</button>
+        </div>
+        <div class="auto-toggle">
+          <button class="switch" id="autoSwitch" role="switch" aria-checked="false" aria-label="Activar modo presentación"></button>
+          <span class="auto-label" id="autoLabel">Modo <b>presentación</b></span>
+        </div>
+      </div>
+
+      <div class="tip">
+        <span class="ic">💡</span>
+        <span><b>Consejo:</b> observa lo que escribe el cursor en cada campo — es un ejemplo real de buena redacción. Adapta el texto a tu caso antes de continuar.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="lookup">
+    <div class="lookup-head">
+      <h2>¿Tienes una duda? Búscala aquí</h2>
+      <p>Escribe una palabra clave — un sistema (TMS, Depot, Power BI), un problema (laptop, VPN, red) o un paso de la guía — y encuentra la categoría o la explicación correcta.</p>
+    </div>
+    <div class="search-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" id="searchInput" placeholder="Ej. “Power BI”, “laptop”, “urgencia”, “VPN”…" autocomplete="off">
+    </div>
+    <div class="search-meta" id="searchMeta">23 categorías reales de ITSANET — escribe para filtrar, o revisa la tabla completa abajo.</div>
+    <div class="step-hits" id="stepHits"></div>
+    <div class="cat-table-wrap">
+      <table class="cat-table" id="catTable">
+        <thead><tr><th>Grupo</th><th>Categoría específica</th><th>Cuándo usarla</th></tr></thead>
+        <tbody id="catTableBody"></tbody>
+      </table>
+      <div class="no-hits" id="noHits" hidden>No encontramos nada con esa palabra. Prueba con otro término o revisa la tabla completa arriba.</div>
+    </div>
+  </div>
+
+  <footer>
+    Esta guía te acompaña paso a paso, pero no envía tickets reales. Para registrar tu caso, hazlo directamente en 192.168.92.43 (portal ITSANET Argentina).
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STEPS = [
+    { screen:"home", field:"crear", nav:"home", crumb:"🏠 <b>Inicio</b>", badge:["info","Bienvenida"],
+      title:"Tu portal de autoservicio",
+      hint:"👉 Haz clic aquí para iniciar tu petición.",
+      desc:"Esta es la pantalla de Inicio en 192.168.92.43. Ahí puedes ver el estado de todas tus peticiones anteriores, agrupadas por estado (Nuevo, En curso, Resuelto, Cerrado…). Para reportar algo nuevo, el punto de partida siempre es “+ Crear una petición”, en el menú izquierdo o en esta tarjeta." },
+    { screen:"form", field:"tipo", nav:"form", crumb:"🏠 Inicio / <b>Crear una petición</b>", badge:["req","Obligatorio"],
+      title:"Elige el Tipo",
+      hint:"Incidencia = algo se rompió. Petición = necesitas algo nuevo.",
+      desc:"Incidencia: algo que funcionaba y dejó de funcionar (no tienes internet, el equipo no enciende, una impresora falla). Petición: algo nuevo que necesitas (instalar un programa, pedir un acceso, solicitar un insumo)." },
+    { screen:"form", field:"categoria", nav:"form", crumb:"🏠 Inicio / <b>Crear una petición</b>", badge:["req","Obligatorio"],
+      title:"Selecciona la Categoría",
+      hint:"Primero el Grupo, luego la Categoría específica. ¿No la encuentras? Usa el buscador de más abajo.",
+      desc:"Cada categoría tiene dos niveles: Grupo (el sistema o área, ej. TMS, Depot, Correo ENTREGAR) y Categoría específica (qué pasa exactamente, ej. Error, Creación de usuario). Ojo con la diferencia: si el sistema TMS completo no carga o no conecta, es Conexión › TMS; si ya estás dentro del TMS y un proceso puntual falla, trae datos incorrectos o necesitas un usuario nuevo, es el grupo TMS con su categoría específica. Más abajo, en “¿Tienes una duda? Búscala aquí”, tienes las 23 categorías reales con un ejemplo de cuándo usar cada una." },
+    { screen:"form", field:"urgencia", nav:"form", crumb:"🏠 Inicio / <b>Crear una petición</b>", badge:["opt","Recomendado"],
+      title:"Define la Urgencia",
+      hint:"Refleja el impacto real — no lo urgente que lo sientas tú.",
+      desc:"Va de Muy baja a Muy alta; por defecto queda en Media. Resérvala para casos que realmente detienen tu trabajo — una urgencia inflada no acelera la atención, solo dificulta priorizar los casos que sí lo necesitan." },
+    { screen:"form", field:"elementos", nav:"form", crumb:"🏠 Inicio / <b>Crear una petición</b>", badge:["opt","Opcional"],
+      title:"Vincula un elemento asociado",
+      hint:"Opcional: solo si tu equipo ya está registrado en GLPI. Si no, deja este campo en blanco.",
+      desc:"Si el caso es sobre un equipo puntual, usa “+ Añadir” y elígelo desde “Mis dispositivos” (tu laptop, tu impresora, etc.). Ten en cuenta que el elemento debe estar previamente registrado en GLPI para poder vincularlo — si tu equipo todavía no está registrado, por ahora puedes dejar este campo vacío y continuar sin problema; no es obligatorio para enviar el caso. Cuando sí está disponible, le da al técnico contexto inmediato sin que tengas que describir el equipo con palabras." },
+    { screen:"form", field:"observadores", nav:"form", crumb:"🏠 Inicio / <b>Crear una petición</b>", badge:["opt","Opcional"],
+      title:"Agrega Observadores",
+      hint:"Opcional: suma a quien también deba enterarse del avance.",
+      desc:"Suma aquí a otra persona que deba enterarse del avance — tu jefe directo, o un compañero afectado por el mismo problema. Recibirá las mismas notificaciones que tú por correo." },
+    { screen:"form", field:"titulo", nav:"form", crumb:"🏠 Inicio / <b>Crear una petición</b>", badge:["req","Obligatorio"],
+      title:"Escribe un Título claro",
+      hint:"Resume el problema en una frase, con un dato concreto (N.º de pedido, cliente…).",
+      desc:"Piensa en el asunto de un correo: corto y específico, con el número de pedido o proceso si lo tienes. ✅ “No puedo generar la orden de picking del pedido 48213 en el TMS”. ❌ “Ayuda” o “Error en el sistema” — obliga al técnico a adivinar." },
+    { screen:"form", field:"descripcion", nav:"form", crumb:"🏠 Inicio / <b>Crear una petición</b>", badge:["req","Obligatorio · campo con *"],
+      title:"Detalla la Descripción",
+      hint:"Tres cosas: qué hacías, qué error salió (cópialo tal cual) y desde cuándo.",
+      desc:"El único campo, junto con el título, que GLPI exige. Incluye tres cosas: qué intentabas hacer, qué mensaje de error apareció (cópialo tal cual) y desde cuándo ocurre — con datos concretos como el N.º de pedido o cliente. Mientras más contexto entregues, menos idas y vueltas necesitará el técnico para resolverlo." },
+    { screen:"form", field:"adjunto", nav:"form", crumb:"🏠 Inicio / <b>Crear una petición</b>", badge:["opt","Muy recomendado"],
+      title:"Adjunta una captura o archivo",
+      hint:"Una captura de pantalla del error vale más que un párrafo entero.",
+      desc:"Arrastra una captura de pantalla del error o el archivo afectado (hasta 32 MB). Una sola imagen suele explicar en segundos lo que cuesta párrafos describir por escrito." },
+    { screen:"form", field:"enviar", nav:"form", crumb:"🏠 Inicio / <b>Crear una petición</b>", badge:["ok","Último paso"],
+      title:"Envía el mensaje",
+      hint:"Revisa Título y Descripción — son los dos únicos campos obligatorios.",
+      desc:"Confirma que Título y Descripción estén completos — son los dos campos obligatorios — y haz clic en “+ Enviar mensaje”. El caso se crea de inmediato con estado “Nuevo”." },
+    { screen:"done", field:null, nav:"home", crumb:"🏠 Inicio / <b>Petición #4128</b>", badge:["ok","Confirmación"],
+      title:"Listo: caso registrado",
+      hint:"",
+      desc:"Tu petición queda visible en Inicio con su número y estado. La mesa de servicio la atenderá según la urgencia asignada, y recibirás un correo institucional cada vez que cambie de estado o el técnico te escriba." }
+  ];
+
+  var categoryData = [
+    { grupo:"Conexión", cat:"Aplicativos externos", cuando:"Falla de acceso a un aplicativo externo distinto a los ya listados." },
+    { grupo:"Conexión", cat:"Depot", cuando:"El sistema Depot no carga, da error o va lento." },
+    { grupo:"Conexión", cat:"Excel", cuando:"Problemas de macros, fórmulas o archivos Excel compartidos." },
+    { grupo:"Conexión", cat:"Power BI", cuando:"Reportes o dashboards de Power BI no cargan o no conectan." },
+    { grupo:"Conexión", cat:"TMS", cuando:"Falla de conexión general al sistema TMS (no carga, no abre, no responde)." },
+    { grupo:"Conexión", cat:"VPN AVELLANEDA", cuando:"No se puede conectar a la VPN institucional — ÚNICAMENTE sede Avellaneda." },
+    { grupo:"Correo ENTREGAR", cat:"Actualización de datos", cuando:"Cambio de nombre, firma o datos del correo institucional." },
+    { grupo:"Correo ENTREGAR", cat:"Creación", cuando:"Solicitud de una cuenta de correo @entregar.net.ar nueva." },
+    { grupo:"Correo ENTREGAR", cat:"Eliminación", cuando:"Baja de una cuenta de correo — por ejemplo, salida de personal." },
+    { grupo:"Depot", cat:"Actualización de datos", cuando:"Corrección de datos maestros dentro de Depot." },
+    { grupo:"Depot", cat:"Creación de usuario", cuando:"Alta de un usuario nuevo en Depot." },
+    { grupo:"Depot", cat:"Error", cuando:"Error funcional o de datos dentro de Depot." },
+    { grupo:"Infraestructura", cat:"Actividad", cuando:"Instalación, movimiento o configuración de equipos." },
+    { grupo:"Infraestructura", cat:"Redes", cuando:"Caída de red, switches, puntos de red o WiFi." },
+    { grupo:"Solicitud de equipamiento", cat:"Handheld", cuando:"Solicitud o falla de lector/handheld de bodega." },
+    { grupo:"Solicitud de equipamiento", cat:"Laptop", cuando:"Solicitud, reemplazo o falla de laptop o equipo de cómputo." },
+    { grupo:"TMS", cat:"Actualización de datos", cuando:"Corrección de datos maestros dentro de TMS." },
+    { grupo:"TMS", cat:"Creación de usuario", cuando:"Alta de un usuario nuevo en TMS." },
+    { grupo:"TMS", cat:"Error", cuando:"Error funcional o de datos dentro de TMS (ya conectado, un proceso puntual falla)." },
+    { grupo:"TMS", cat:"Integración", cuando:"Falla de integración de TMS con otro sistema." },
+    { grupo:"TMS", cat:"Mejora / cambio de proceso", cuando:"Solicitud de mejora o cambio de proceso dentro de TMS." },
+    { grupo:"TMS", cat:"Reportes", cuando:"Un reporte de TMS no genera o trae datos incorrectos." },
+    { grupo:"Control", cat:"Solicitud incompleta o inválida", cuando:"Uso interno del técnico, cuando el caso no trae la información mínima para trabajarlo.", internal:true }
+  ];
+
+  var fills = {
+    tipo:{step:1, text:"Incidencia"},
+    categoria:{step:2, text:"TMS › Error"},
+    urgencia:{step:3, text:"Alta"},
+    elementos:{step:4, text:"💻 Mis dispositivos · Laptop BE-042"},
+    observadores:{step:5, text:"jefe.directo@itsanet.com"},
+    titulo:{step:6, text:"No puedo generar la orden de picking del pedido 48213 en el TMS"},
+    descripcion:{step:7, text:"Desde ayer, al confirmar el pedido 48213 el TMS muestra “Error al generar orden” y no crea la ruta de picking. Ya lo intenté 3 veces y con otro pedido similar; con pedidos de menos de 10 líneas sí funciona."},
+    adjunto:{step:8, text:null}
+  };
+
+  var optionPreviews = {
+    tipo:["Incidencia ✓","Petición"],
+    categoria:["TMS ▸ Actualización de datos","TMS ▸ Error ✓","TMS ▸ Reportes","Conexión ▸ TMS"],
+    urgencia:["Baja","Media","Alta ✓","Muy alta"]
+  };
+
+  var current = 0;
+  var presentMode = false;
+  var stepReady = false;
+  var animTimers = [];
+
+  var rail = document.getElementById("rail");
+  var stage = document.getElementById("stage");
+  var spotlight = document.getElementById("spotlight");
+  var panel = document.getElementById("panel");
+  var progressFill = document.getElementById("progressFill");
+  var stageUrl = document.getElementById("stageUrl");
+  var glpiNav = document.getElementById("glpiNav");
+  var glpiCrumb = document.getElementById("glpiCrumb");
+  var cursorEl = document.getElementById("cursor");
+  var rippleEl = document.getElementById("ripple");
+  var optFlashEl = document.getElementById("optFlash");
+  var hintBubbleEl = document.getElementById("hintBubble");
+  var hintTextEl = document.getElementById("hintText");
+  var searchInputEl = document.getElementById("searchInput");
+  var searchMetaEl = document.getElementById("searchMeta");
+  var stepHitsEl = document.getElementById("stepHits");
+  var catTableBodyEl = document.getElementById("catTableBody");
+  var noHitsEl = document.getElementById("noHits");
+
+  STEPS.forEach(function(s, i){
+    var b = document.createElement("button");
+    b.className = "step-btn"; b.type = "button";
+    b.innerHTML = '<span class="num">'+(i+1)+'</span><span>'+s.title+'</span>';
+    b.addEventListener("click", function(){ goTo(i); });
+    rail.appendChild(b);
+  });
+  var railBtns = rail.querySelectorAll(".step-btn");
+
+  function fieldEl(name){ return stage.querySelector('[data-field="'+name+'"]'); }
+  function clickTarget(name){
+    var row = fieldEl(name);
+    if (!row) return null;
+    return row.querySelector(".f-input, .f-file, .glpi-btn-solid, .glpi-btn-outline") || row;
+  }
+  function setT(fn, ms){ var id = setTimeout(fn, ms); animTimers.push(id); return id; }
+  function clearAnimTimers(){ animTimers.forEach(clearTimeout); animTimers = []; }
+
+  function applyFills(upToStep){
+    Object.keys(fills).forEach(function(key){
+      var f = fills[key];
+      var el = document.getElementById("v-"+key);
+      if (!el) return;
+      if (upToStep >= f.step){
+        if (key === "adjunto"){
+          document.getElementById("v-adjunto").innerHTML = '📎 <b>captura_error_ventas.png</b> · 1.2 MB adjuntado';
+        } else {
+          el.textContent = f.text; el.classList.remove("ph");
+        }
+      } else {
+        if (key === "adjunto"){
+          document.getElementById("v-adjunto").innerHTML = 'Arrastra y suelta el archivo aquí, o <b>Elegir archivos</b><div class="btns"><span>Elegir archivos</span><span>Ningún archivo seleccionado</span></div>';
+        } else {
+          var empty = {titulo:"", observadores:"Buscar persona…", urgencia:"Media", tipo:"Incidencia", categoria:"-----"};
+          el.textContent = empty[key] !== undefined ? empty[key] : "";
+          if (key==="urgencia" || key==="tipo") el.classList.remove("ph"); else el.classList.add("ph");
+        }
+      }
+    });
+  }
+
+  function positionSpotlight(fieldName){
+    if (!fieldName){ spotlight.style.opacity = 0; panel.style.setProperty("--arrow-display","none"); return; }
+    var target = fieldEl(fieldName);
+    if (!target){ spotlight.style.opacity = 0; panel.style.setProperty("--arrow-display","none"); return; }
+    requestAnimationFrame(function(){
+      var stageRect = stage.getBoundingClientRect();
+      var r = target.getBoundingClientRect();
+      var pad = 6;
+      spotlight.style.left = (r.left - stageRect.left - pad) + "px";
+      spotlight.style.top = (r.top - stageRect.top - pad) + "px";
+      spotlight.style.width = (r.width + pad*2) + "px";
+      spotlight.style.height = (r.height + pad*2) + "px";
+      spotlight.style.opacity = 1;
+
+      var panelRect = panel.getBoundingClientRect();
+      if (panelRect.left >= stageRect.right - 40){
+        var arrowY = (r.top + r.height/2 - panelRect.top);
+        arrowY = Math.max(24, Math.min(panelRect.height - 24, arrowY));
+        panel.style.setProperty("--arrow-top", arrowY + "px");
+        panel.style.setProperty("--arrow-display","block");
+      } else {
+        panel.style.setProperty("--arrow-display","none");
+      }
+    });
+  }
+
+  function badgeClass(kind){ return {req:"req", opt:"opt", info:"info", ok:"ok"}[kind] || "info"; }
+
+  function typeInto(el, text, cb){
+    el.classList.remove("ph");
+    var i = 0;
+    var delay = Math.max(15, Math.min(46, 1500 / Math.max(text.length, 1)));
+    (function tick(){
+      var done = i >= text.length;
+      el.innerHTML = (done ? text : text.slice(0, i)) + (done ? "" : '<span class="caret-blink">&nbsp;</span>');
+      i++;
+      if (!done) setT(tick, delay); else if (cb) cb();
+    })();
+  }
+
+  function showOptionsFlash(fieldName, x, y, cb){
+    var opts = optionPreviews[fieldName];
+    if (!opts){ cb(); return; }
+    optFlashEl.innerHTML = opts.map(function(o){
+      return '<span class="'+(o.indexOf("✓") > -1 ? "pick" : "")+'">'+o+'</span>';
+    }).join("");
+    optFlashEl.style.left = x + "px";
+    optFlashEl.style.top = (y + 14) + "px";
+    requestAnimationFrame(function(){ optFlashEl.classList.add("show"); });
+    setT(function(){
+      optFlashEl.classList.remove("show");
+      setT(cb, 260);
+    }, 1150);
+  }
+
+  function hideHintBubble(){ hintBubbleEl.classList.remove("show"); }
+
+  function positionHintBubble(fieldName, text){
+    if (!text){ hideHintBubble(); return; }
+    var target = fieldEl(fieldName);
+    if (!target){ hideHintBubble(); return; }
+    hintTextEl.textContent = text;
+    requestAnimationFrame(function(){
+      var stageRect = stage.getBoundingClientRect();
+      var r = target.getBoundingClientRect();
+      var bubbleW = Math.min(216, stageRect.width - 16);
+      hintBubbleEl.style.width = bubbleW + "px";
+      var left = r.left - stageRect.left;
+      left = Math.max(8, Math.min(stageRect.width - bubbleW - 8, left));
+      hintBubbleEl.style.left = left + "px";
+
+      var spaceBelow = stageRect.height - (r.bottom - stageRect.top);
+      var below = spaceBelow > 96;
+      hintBubbleEl.classList.toggle("below", below);
+      hintBubbleEl.classList.toggle("above", !below);
+      var h = hintBubbleEl.offsetHeight || 64;
+      var top = below ? (r.bottom - stageRect.top + 14) : (r.top - stageRect.top - h - 14);
+      top = Math.max(4, Math.min(stageRect.height - h - 4, top));
+      hintBubbleEl.style.top = top + "px";
+      hintBubbleEl.classList.add("show");
+    });
+  }
+
+  function updateNextPulseState(){
+    var atEnd = current === STEPS.length - 1;
+    document.getElementById("btnNext").classList.toggle("pulsing", presentMode && stepReady && !atEnd);
+  }
+
+  function runStepAnimation(idx){
+    clearAnimTimers();
+    var s = STEPS[idx];
+    stepReady = false;
+    updateNextPulseState();
+    hideHintBubble();
+
+    if (!s.field){ cursorEl.classList.remove("show"); rippleEl.classList.remove("go"); stepReady = true; updateNextPulseState(); return; }
+    var target = clickTarget(s.field);
+    if (!target){ cursorEl.classList.remove("show"); stepReady = true; updateNextPulseState(); return; }
+
+    requestAnimationFrame(function(){
+      var stageRect = stage.getBoundingClientRect();
+      var r = target.getBoundingClientRect();
+      var x = r.left - stageRect.left + Math.min(26, r.width * 0.22);
+      var y = r.top - stageRect.top + r.height / 2;
+
+      cursorEl.classList.add("show");
+      cursorEl.style.left = x + "px";
+      cursorEl.style.top = y + "px";
+
+      setT(function(){
+        rippleEl.style.left = x + "px";
+        rippleEl.style.top = y + "px";
+        rippleEl.classList.remove("go");
+        void rippleEl.offsetWidth;
+        rippleEl.classList.add("go");
+
+        setT(function(){
+          var key = s.field;
+          var f = fills[key];
+          function finish(){ setT(function(){ stepReady = true; updateNextPulseState(); }, 450); }
+          if (optionPreviews[key]){
+            showOptionsFlash(key, x, y, function(){
+              if (f) { document.getElementById("v-"+key).textContent = f.text; document.getElementById("v-"+key).classList.remove("ph"); }
+              if (s.hint) positionHintBubble(s.field, s.hint);
+              finish();
+            });
+          } else if (key === "adjunto"){
+            if (s.hint) positionHintBubble(s.field, s.hint);
+            setT(function(){
+              document.getElementById("v-adjunto").innerHTML = '📎 <b>captura_error_ventas.png</b> · 1.2 MB adjuntado';
+              finish();
+            }, 420);
+          } else if (f && f.text){
+            if (s.hint) positionHintBubble(s.field, s.hint);
+            typeInto(document.getElementById("v-"+key), f.text, finish);
+          } else {
+            if (s.hint) positionHintBubble(s.field, s.hint);
+            finish();
+          }
+        }, 520);
+      }, 900);
+    });
+  }
+
+  function renderCategoryTable(){
+    catTableBodyEl.innerHTML = categoryData.map(function(c, i){
+      return '<tr data-i="'+i+'"'+(c.internal ? ' class="internal"' : '')+'>'
+        + '<td class="grupo">'+c.grupo+'</td>'
+        + '<td class="cat">'+c.cat+'</td>'
+        + '<td class="cuando">'+c.cuando+'</td>'
+        + '</tr>';
+    }).join("");
+  }
+
+  function highlight(text, q){
+    if (!q) return text;
+    var idx = text.toLowerCase().indexOf(q.toLowerCase());
+    if (idx === -1) return text;
+    return text.slice(0, idx) + "<mark>" + text.slice(idx, idx + q.length) + "</mark>" + text.slice(idx + q.length);
+  }
+
+  function runSearch(){
+    var q = searchInputEl.value.trim();
+    var rows = catTableBodyEl.querySelectorAll("tr");
+    var visibleCount = 0;
+
+    if (!q){
+      rows.forEach(function(row){
+        row.classList.remove("hidden");
+        var c = categoryData[+row.dataset.i];
+        row.children[0].textContent = c.grupo;
+        row.children[1].textContent = c.cat;
+        row.children[2].textContent = c.cuando;
+      });
+      visibleCount = categoryData.length;
+      noHitsEl.hidden = true;
+      searchMetaEl.textContent = categoryData.length + " categorías reales de ITSANET — escribe para filtrar, o revisa la tabla completa abajo.";
+      stepHitsEl.innerHTML = "";
+      return;
+    }
+
+    var ql = q.toLowerCase();
+    rows.forEach(function(row){
+      var c = categoryData[+row.dataset.i];
+      var match = (c.grupo + " " + c.cat + " " + c.cuando).toLowerCase().indexOf(ql) > -1;
+      row.classList.toggle("hidden", !match);
+      if (match){
+        visibleCount++;
+        row.children[0].innerHTML = highlight(c.grupo, q);
+        row.children[1].innerHTML = highlight(c.cat, q);
+        row.children[2].innerHTML = highlight(c.cuando, q);
+      }
+    });
+
+    var stepMatches = STEPS.filter(function(s){
+      return (s.title + " " + s.desc + " " + (s.hint||"")).toLowerCase().indexOf(ql) > -1;
+    });
+    stepHitsEl.innerHTML = stepMatches.map(function(s){
+      var i = STEPS.indexOf(s);
+      return '<button type="button" class="step-hit" data-i="'+i+'"><span class="tag">Paso '+(i+1)+'</span><span>'+s.title+'</span></button>';
+    }).join("");
+    stepHitsEl.querySelectorAll(".step-hit").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        goTo(+btn.dataset.i);
+        var stageFrame = document.querySelector(".stage-frame");
+        if (stageFrame && stageFrame.scrollIntoView) stageFrame.scrollIntoView({behavior:"smooth", block:"center"});
+      });
+    });
+
+    noHitsEl.hidden = (visibleCount > 0 || stepMatches.length > 0);
+    var parts = [];
+    if (visibleCount) parts.push(visibleCount + " categoría" + (visibleCount === 1 ? "" : "s"));
+    if (stepMatches.length) parts.push(stepMatches.length + " paso" + (stepMatches.length === 1 ? "" : "s") + " de la guía");
+    searchMetaEl.textContent = parts.length ? ("Coincidencias: " + parts.join(" · ")) : "Sin coincidencias para “" + q + "”.";
+  }
+
+  function render(){
+    var s = STEPS[current];
+    ["home","form","done"].forEach(function(name){
+      document.getElementById("screen-"+name).classList.toggle("active", s.screen === name);
+    });
+    stageUrl.textContent = s.screen === "form"
+      ? "192.168.92.43/front/helpdesk.public.php?create_ticket=1"
+      : s.screen === "done"
+        ? "192.168.92.43/front/ticket.form.php?id=4128"
+        : "192.168.92.43/front/helpdesk.public.php";
+    glpiCrumb.innerHTML = s.crumb;
+    glpiNav.querySelectorAll("a").forEach(function(a){ a.classList.toggle("on", a.dataset.nav === s.nav); });
+
+    applyFills(current - 1);
+    optFlashEl.classList.remove("show");
+    document.getElementById("cnt-nuevo").textContent = current >= 10 ? "1" : "0";
+
+    positionSpotlight(s.field);
+
+    railBtns.forEach(function(btn, i){
+      btn.classList.toggle("active", i === current);
+      btn.classList.toggle("done", i < current);
+    });
+    var activeBtn = railBtns[current];
+    if (activeBtn && activeBtn.scrollIntoView) activeBtn.scrollIntoView({block:"nearest", inline:"center"});
+
+    document.getElementById("panelTitle").textContent = s.title;
+    document.getElementById("panelDesc").textContent = s.desc;
+    document.getElementById("stepCount").textContent = "Paso "+(current+1)+" de "+STEPS.length;
+    document.getElementById("panelBadges").innerHTML = '<span class="badge '+badgeClass(s.badge[0])+'">'+s.badge[1]+'</span>';
+
+    var atEnd = current === STEPS.length - 1;
+    document.getElementById("btnPrev").disabled = current === 0;
+    var nextBtn = document.getElementById("btnNext");
+    nextBtn.disabled = atEnd;
+    nextBtn.textContent = atEnd ? "Recorrido completo" : (presentMode ? "Confirmar y continuar ▶" : "Siguiente →");
+
+    progressFill.style.width = (current/(STEPS.length-1))*100 + "%";
+
+    runStepAnimation(current);
+  }
+
+  function goTo(i){ current = Math.max(0, Math.min(STEPS.length - 1, i)); render(); }
+  function next(){ if (current < STEPS.length - 1) goTo(current + 1); }
+  function prev(){ goTo(current - 1); }
+
+  document.getElementById("btnNext").addEventListener("click", next);
+  document.getElementById("btnPrev").addEventListener("click", prev);
+  document.getElementById("btnReset").addEventListener("click", function(){ goTo(0); });
+  document.getElementById("autoSwitch").addEventListener("click", function(){
+    presentMode = !presentMode;
+    this.classList.toggle("on", presentMode);
+    this.setAttribute("aria-checked", presentMode ? "true" : "false");
+    var atEnd = current === STEPS.length - 1;
+    var nextBtn = document.getElementById("btnNext");
+    nextBtn.textContent = atEnd ? "Recorrido completo" : (presentMode ? "Confirmar y continuar ▶" : "Siguiente →");
+    updateNextPulseState();
+  });
+
+  document.addEventListener("keydown", function(e){
+    if (e.key === "ArrowRight" || (presentMode && e.key === " ")){ e.preventDefault(); next(); }
+    if (e.key === "ArrowLeft"){ prev(); }
+  });
+  window.addEventListener("resize", function(){ positionSpotlight(STEPS[current].field); });
+  if (document.fonts && document.fonts.ready){
+    document.fonts.ready.then(function(){ positionSpotlight(STEPS[current].field); });
+  }
+
+  searchInputEl.addEventListener("input", runSearch);
+  renderCategoryTable();
+  runSearch();
+
+  render();
+})();
+</script>
